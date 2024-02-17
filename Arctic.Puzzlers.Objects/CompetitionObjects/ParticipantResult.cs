@@ -9,5 +9,6 @@
         }
         public List<Participant> Participants { get; set; }
         public List<Result> Results { get; set; }
+        
     }
 }

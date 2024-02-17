@@ -1,6 +1,8 @@
+using Arctic.Puzzlers.Objects.CompetitionObjects;
 using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Arctic.Puzzlers.Parsers.CompetitionParsers;
 using Arctic.Puzzlers.Parsers.PuzzleParsers;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Arctic.Puzzlers.Worker
 {
@@ -37,6 +39,8 @@ namespace Arctic.Puzzlers.Worker
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                var puzzleList = new List<PuzzleExtended>();
+                var competitionList = new List<Competition>();
                 try
                 {
                     if (_logger.IsEnabled(LogLevel.Information))
@@ -44,19 +48,28 @@ namespace Arctic.Puzzlers.Worker
                         _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                     }
 
-
-                    
-
                     foreach (var competitionUrl in m_competitionUrls)
                     {
                         var parser = m_competitionFactory.GetParser(competitionUrl.Item2);
-                        
+
                         if (parser != null)
                         {
-                            await parser.Parse(competitionUrl.Item1);
+                            competitionList.AddRange(await parser.Parse(competitionUrl.Item1));
                         }
 
                     }
+
+                    foreach (var brandPage in m_brandUrls)
+                    {
+                        var parser = m_puzzleFactory.GetParser(brandPage.Item2);
+
+                        if (parser != null)
+                        {
+                            puzzleList.AddRange(await parser.Parse(brandPage.Item1));
+                        }
+
+                    }
+                                         
                     await Task.Delay(1 * 24 * 60 * 60 * 1000, stoppingToken);
                 }
                 catch (Exception ex) {

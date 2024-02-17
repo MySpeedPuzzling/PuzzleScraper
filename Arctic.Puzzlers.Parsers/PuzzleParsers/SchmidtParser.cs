@@ -21,8 +21,11 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
                 try
                 {
                     var puzzle = await ParseSpecificPage(puzzleUrl);
-                    puzzles.Add(puzzle);
-                    m_logger.LogInformation(puzzle.ToString());
+                    if(puzzle != null) 
+                    {
+                        puzzles.Add(puzzle);
+                        m_logger.LogInformation(puzzle.Name);
+                    }
                 }
                 catch (Exception e)
                 {

@@ -51,6 +51,10 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
             var barcode = doc.DocumentNode.SelectSingleNode("//div[@class='specificationContainer']");
             var title = doc.DocumentNode.SelectSingleNode("//title");
             var puzzleObject = new PuzzleExtended();
+            if(numberOfPiecesNode == null)
+            {
+                return null;
+            }
             var numberOfPieces = long.Parse(string.Join("",numberOfPiecesNode.InnerText.Where(c => Char.IsDigit(c) || c == '.')));
             if(!m_allowedSizes.Any(t=> t == numberOfPieces))
             {

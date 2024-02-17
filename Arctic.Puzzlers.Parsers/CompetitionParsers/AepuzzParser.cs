@@ -1,4 +1,5 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
+using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Arctic.Puzzlers.Parsers.CompetitionParsers;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
@@ -18,65 +19,50 @@ namespace Arctic.Puzzlers.CLI.InputParsing
 
         internal void ResolveContestType(Competition competitionObject)
         {
-            if(competitionObject.Competitors.All(t=> string.IsNullOrEmpty(t.Person2)))
+            if(competitionObject.Participants.All(t=> t.Participants.Count <=1))
             {
-                competitionObject.ContestType = "Individual";
+                competitionObject.ContestType = ContestType.Individual;
             }
-            else if (competitionObject.Competitors.All(t => string.IsNullOrEmpty(t.Person3)))
+            else if (competitionObject.Participants.All(t => t.Participants.Count <=2))
             {
-                competitionObject.ContestType = "Pair";
+                competitionObject.ContestType = ContestType.Pair;
+            }
+            else if (competitionObject.Participants.All(t => t.Participants.Count <= 4))
+            {
+                competitionObject.ContestType = ContestType.Team;
             }
             else
             {
-                competitionObject.ContestType = "Team";
+                competitionObject.ContestType = ContestType.Unknown;
             }
         }
 
-        internal void ParseTime(P competitor, HtmlNodeCollection values)
-        {
-            var result = values[4].InnerText;
-            if (Regex.IsMatch(result, @"\d\d:\d\d:\d\d"))
-            {
-                competitor.FinalTime = Regex.Match(result, @"\d\d:\d\d:\d\d").Value;
-            }
-            else 
-            { 
-                competitor.NumberOfPieces = long.Parse(Regex.Match(result, @"\d+").Value); 
-            }
-           
-        }
 
-        internal void ParseLocation(Competition competitor, HtmlNodeCollection values)
+        internal void AddResult(Competition competitor, HtmlNodeCollection values)
         {
-            var location = values[3].InnerText;
-
-            competitor.Location = location;
-        }
-        internal void ParseNames(Competition competitor, HtmlNodeCollection values)
-        {
-           
+            var participantResult = new ParticipantResult();
             var names = values[2].SelectNodes("div/a");
             if(names.Count() > 0) 
             {
                 for(int i =0 ; names.Count > i; i++)
                 {
-                    switch(i)
-                    {
-                        case 0:
-                            competitor.Person1 = names[i].InnerText;
-                            break;
-                        case 1:
-                            competitor.Person2 = names[i].InnerText;
-                            break;
-                        case 2:
-                            competitor.Person3 = names[i].InnerText;
-                            break;
-                        case 3:
-                            competitor.Person4 = names[i].InnerText;
-                            break;
-                    }
+                    participantResult.Participants.Add(new Participant { FullName= names[i].InnerText, Country= Objects.Misc.Countries.ESP });                
                 }
             }
+            var result = values[4].InnerText;
+            var singlePuzzleResult = new Result();
+            singlePuzzleResult.Puzzle = competitor.Puzzles.First();
+            if (Regex.IsMatch(result, @"\d\d:\d\d:\d\d"))
+            {
+                singlePuzzleResult.Time = TimeSpan.Parse(Regex.Match(result, @"\d\d:\d\d:\d\d").Value);
+            }
+            else
+            {
+                singlePuzzleResult.FinishedPieces = long.Parse(Regex.Match(result, @"\d+").Value);
+            }
+            participantResult.Results.Add(singlePuzzleResult);
+
+            competitor.Participants.Add(participantResult);
         }
 
         public async Task<List<Competition>> Parse(string url)
@@ -86,18 +72,24 @@ namespace Arctic.Puzzlers.CLI.InputParsing
             {
                 for (int x = 1; x < 4; x++)
                 {
+                    var competitionObject = new Competition();
                     var currentUrl = url + $"?id={i}&cat={x}";
 
                     var web = new HtmlWeb();
                     var doc = web.Load(currentUrl);
                     var imageUrl = doc?.DocumentNode?.SelectSingleNode("//img[contains(@src,'imagenes')]")?.GetAttributeValue("src", "");
-                    if (string.IsNullOrEmpty(imageUrl))
+                    if (!string.IsNullOrEmpty(imageUrl))
                     {
-                        continue;
+                        var imagename = imageUrl.Split('/').Last().Split('_');
+                        var brandName = string.Concat(imagename.First()[0].ToString().ToUpper(), imagename.First().AsSpan(1));
+                        var shortId = long.Parse(imagename.Last().Replace(".jpg", ""));
+                        competitionObject.Puzzles.Add(new Puzzle { BrandName = ParseBrandName(brandName), ShortId = shortId });
                     }
-                    var imagename = imageUrl.Split('/').Last().Split('_');
-                    var brandName = string.Concat(imagename.First()[0].ToString().ToUpper(), imagename.First().AsSpan(1));
-                    var shortId = imagename.Last().Replace(".jpg", "");                   
+                    else
+                    {
+                        competitionObject.Puzzles.Add(new Puzzle { BrandName = BrandName.Unknown, ShortId = 0 });
+                    }
+                   
                     competitionObject.Name = doc.DocumentNode.SelectSingleNode("//h1[@class='display-4']").InnerText;
                     var placeAndTime = doc.DocumentNode.SelectSingleNode("//p[@class='lead']").InnerText;
 
@@ -109,7 +101,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                             var datetimeString = placeAndTimeList[0].Replace(" ", string.Empty);
                             if (DateTime.TryParseExact(datetimeString, "dd/MM/yyyy-HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime time))
                             {
-                                competitionObject.Time = Timestamp.FromDateTime(time.ToUniversalTime());
+                                competitionObject.Time = time;
                             }
                             competitionObject.Location = placeAndTimeList[1];
                         }
@@ -122,20 +114,40 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                         {
                             continue;
                         }
-                        var competitor = new Competition();
-
-                        ParseNames(competitor,values);
-                        ParseLocation(competitor,values);
-                        ParseTime(competitor,values);
-                        competitor.CountryCode = "es";
-
-                        competitionObject.Competitors.Add(competitor);
+                        AddResult(competitionObject, values);
                     }
                     ResolveContestType(competitionObject);
-                    m_logger.LogInformation(competitionObject.Id.ToString());
-                }
+                    m_logger.LogInformation(competitionObject.Name);
+                    competitions.Add(competitionObject);
+                }                
             }
+
             return competitions;
+        }
+        
+        public BrandName ParseBrandName(string name)
+        {
+            if(name == null)
+            {
+                return BrandName.Unknown;
+            }
+            if(name.ToUpperInvariant()== "RAVENSBURGER")
+            {
+                return BrandName.Ravensburger;
+            }
+            if (name.ToUpperInvariant() == "SCHMIDT")
+            {
+                return BrandName.Schmidt;
+            }
+            if (name.ToUpperInvariant() == "CLEMENTONI")
+            {
+                return BrandName.Clementoni;
+            }
+            if (name.ToUpperInvariant() == "EDUCA")
+            {
+                return BrandName.Educa;
+            }
+            return BrandName.Unknown;
         }
 
         public bool SupportCompetitionType(CompetitionType competitionType)

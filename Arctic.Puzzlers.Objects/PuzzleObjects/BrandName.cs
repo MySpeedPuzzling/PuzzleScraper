@@ -3,6 +3,9 @@
     public enum BrandName
     {
         Ravensburger,
-        Schmidt
+        Schmidt,
+        Clementoni,
+        Unknown,
+        Educa
     }
 }
