@@ -4,7 +4,18 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
 {
     public class Result
     {
-        public TimeSpan Time { get; set; }
+        private TimeSpan m_time;
+        public TimeSpan Time
+        {
+            get
+            { return m_time; }
+            set
+            {
+                Time = value;
+                SecondsUsed = value.TotalSeconds;
+            }
+        }
+        public double SecondsUsed { get; set; }
         public long FinishedPieces { get; set; }
         public Puzzle Puzzle { get; set; }        
     }
