@@ -62,12 +62,12 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
             }
             puzzleObject.NumberOfPieces = numberOfPieces;
             puzzleObject.BrandName = BrandName.Ravensburger;
-            puzzleObject.Identifier = string.Join("", barcode.InnerText.Where(c => Char.IsDigit(c) || c == '.'));
-            puzzleObject.ShortId = long.Parse(puzzleObject.Identifier.Substring(7, 5));
+            puzzleObject.EAN = string.Join("", barcode.InnerText.Where(c => Char.IsDigit(c) || c == '.'));
+            puzzleObject.ShortId = long.Parse(puzzleObject.EAN.Substring(7, 5));
             var baseUrl = new Uri(url);
-            var imageUrl = baseUrl?.Scheme + "://" + baseUrl?.Authority + $"/produktseiten/500/{puzzleObject.ShortId}.webp";
+            var imageUrl = baseUrl?.Scheme + "://" + baseUrl?.Authority + $"/produktseiten/1024/{puzzleObject.ShortId}.webp";
             puzzleObject.Name = title.InnerText.Split('|').First().CleanUpName();
-            puzzleObject.ImageUrl = imageUrl;
+            puzzleObject.ImageUrls.Add(imageUrl);
             return puzzleObject;
         }
 
@@ -90,13 +90,6 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
             return "/products/";
         }
 
-        internal static async Task<byte[]> GetImage(string url)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                return await client.GetByteArrayAsync(new Uri(url));
-            }
-        }
         internal static List<string> GetAllLinksPerPage(string url)
         {
             var linksToPuzzles = new List<string>();

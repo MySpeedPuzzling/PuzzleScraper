@@ -2,11 +2,15 @@
 {
     public class PuzzleExtended : Puzzle
     {
+        public PuzzleExtended() 
+        {
+            ImageUrls = new List<string>();
+        }
         public long NumberOfPieces { get; set; }
         public string InternalIdentifier { get; set; }
-        public string Identifier {  get; set; } 
+        public string EAN {  get; set; } 
         public string Name { get; set; }
         public string Description { get; set; }
-        public string ImageUrl { get; set; }
+        public List<string> ImageUrls { get; set; }
     }
 }

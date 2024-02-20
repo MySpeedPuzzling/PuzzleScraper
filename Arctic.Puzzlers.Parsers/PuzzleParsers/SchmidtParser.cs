@@ -80,17 +80,9 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
             puzzle.ShortId = long.Parse(shortid) ;
             var images = doc.DocumentNode.SelectNodes("//figure/img");
             var imageUrl = GetBaseUrl(url) + "/" + images.First().GetAttributeValue("src","");
-            puzzle.Name = name.CleanUpName();           
-            puzzle.ImageUrl = imageUrl;
+            puzzle.Name = name.CleanUpName();
+            puzzle.ImageUrls.Add(imageUrl);
             return puzzle;
-        }
-
-        private async Task<byte[]> GetImage(string url)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                return await client.GetByteArrayAsync(new Uri(url));
-            }
         }
 
         private static List<string> GetAllLinksPerPage(string url)
