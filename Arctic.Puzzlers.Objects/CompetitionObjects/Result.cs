@@ -11,7 +11,7 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
             { return m_time; }
             set
             {
-                Time = value;
+                m_time = value;
                 SecondsUsed = value.TotalSeconds;
             }
         }
