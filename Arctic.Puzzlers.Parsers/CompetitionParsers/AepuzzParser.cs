@@ -70,56 +70,65 @@ namespace Arctic.Puzzlers.CLI.InputParsing
             var competitions = new List<Competition>();
             for (int i = 1; i < 1000; i++)
             {
-                for (int x = 1; x < 4; x++)
+                try
                 {
-                    var competitionObject = new Competition();
-                    var currentUrl = url + $"?id={i}&cat={x}";
+                    for (int x = 1; x < 4; x++)
+                    {
+                        var competitionObject = new Competition();
+                        var currentUrl = url + $"?id={i}&cat={x}";
 
-                    var web = new HtmlWeb();
-                    var doc = web.Load(currentUrl);
-                    var imageUrl = doc?.DocumentNode?.SelectSingleNode("//img[contains(@src,'imagenes')]")?.GetAttributeValue("src", "");
-                    if (!string.IsNullOrEmpty(imageUrl))
-                    {
-                        var imagename = imageUrl.Split('/').Last().Split('_');
-                        var brandName = string.Concat(imagename.First()[0].ToString().ToUpper(), imagename.First().AsSpan(1));
-                        var shortId = long.Parse(imagename.Last().Replace(".jpg", ""));
-                        competitionObject.Puzzles.Add(new Puzzle { BrandName = ParseBrandName(brandName), ShortId = shortId });
-                    }
-                    else
-                    {
-                        competitionObject.Puzzles.Add(new Puzzle { BrandName = BrandName.Unknown, ShortId = 0 });
-                    }
-                   
-                    competitionObject.Name = doc.DocumentNode.SelectSingleNode("//h1[@class='display-4']").InnerText;
-                    var placeAndTime = doc.DocumentNode.SelectSingleNode("//p[@class='lead']").InnerText;
-
-                    if (!string.IsNullOrEmpty(placeAndTime))
-                    {
-                        var placeAndTimeList = placeAndTime.Split('.', 2);
-                        if (placeAndTimeList.Length == 2)
+                        competitionObject.Url = currentUrl;
+                        var web = new HtmlWeb();
+                        var doc = web.Load(currentUrl);
+                        var imageUrl = doc?.DocumentNode?.SelectSingleNode("//img[contains(@src,'imagenes')]")?.GetAttributeValue("src", "");
+                        if (!string.IsNullOrEmpty(imageUrl))
                         {
-                            var datetimeString = placeAndTimeList[0].Replace(" ", string.Empty);
-                            if (DateTime.TryParseExact(datetimeString, "dd/MM/yyyy-HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime time))
+                            var imagename = imageUrl.Split('/').Last().Split('_');
+                            var brandName = string.Concat(imagename.First()[0].ToString().ToUpper(), imagename.First().AsSpan(1));
+                            var shortId = long.Parse(imagename.Last().Replace(".jpg", ""));
+                            competitionObject.Puzzles.Add(new Puzzle { BrandName = ParseBrandName(brandName), ShortId = shortId });
+                        }
+                        else
+                        {
+                            competitionObject.Puzzles.Add(new Puzzle { BrandName = BrandName.Unknown, ShortId = 0 });
+                        }
+                        competitionObject.Name = doc.DocumentNode.SelectSingleNode("//h1[@class='display-4']").InnerText;
+                        var placeAndTime = doc.DocumentNode.SelectSingleNode("//p[@class='lead']").InnerText;
+
+                        if (!string.IsNullOrEmpty(placeAndTime))
+                        {
+                            var placeAndTimeList = placeAndTime.Split('.', 2);
+                            if (placeAndTimeList.Length == 2)
                             {
-                                competitionObject.Time = time;
+                                var datetimeString = placeAndTimeList[0].Replace(" ", string.Empty);
+                                if (DateTime.TryParseExact(datetimeString, "dd/MM/yyyy-HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime time))
+                                {
+                                    competitionObject.Time = time;
+                                }
+                                competitionObject.Location = placeAndTimeList[1];
                             }
-                            competitionObject.Location = placeAndTimeList[1];
                         }
-                    }
 
-                    foreach (HtmlNode tableLine in doc.DocumentNode.SelectNodes("//tr"))
-                    {
-                        var values = tableLine.SelectNodes("td");
-                        if (values == null || values.Count() == 0)
+                        foreach (HtmlNode tableLine in doc.DocumentNode.SelectNodes("//tr"))
                         {
-                            continue;
+                            var values = tableLine.SelectNodes("td");
+                            if (values == null || values.Count() == 0)
+                            {
+                                continue;
+                            }
+                            AddResult(competitionObject, values);
                         }
-                        AddResult(competitionObject, values);
+                        ResolveContestType(competitionObject);
+                        
+                        m_logger.LogInformation(competitionObject.Name);
+                        
+                        competitions.Add(competitionObject);
                     }
-                    ResolveContestType(competitionObject);
-                    m_logger.LogInformation(competitionObject.Name);
-                    competitions.Add(competitionObject);
-                }                
+                }
+                catch (Exception ex)
+                {
+                    m_logger.LogInformation(ex,$"Could not parse data from {url} due to exception");
+                }
             }
 
             return competitions;

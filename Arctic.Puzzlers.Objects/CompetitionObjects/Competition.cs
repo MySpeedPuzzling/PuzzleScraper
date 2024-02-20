@@ -1,5 +1,6 @@
 ﻿
 using Arctic.Puzzlers.Objects.PuzzleObjects;
+using System.Text.Json.Serialization;
 
 namespace Arctic.Puzzlers.Objects.CompetitionObjects
 {
@@ -11,7 +12,6 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
             Puzzles = new List<Puzzle>();
         }
         public string Name { get; set; }
-        
         public ContestType ContestType { get; set; }
         public List<ParticipantResult> Participants { get; set; }
         public List<Puzzle> Puzzles { get; set; }

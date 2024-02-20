@@ -7,13 +7,13 @@ namespace Arctic.Puzzlers.Parsers
 {
     public static class ServiceCollectionExtensions
     {
-       public static IServiceCollection AddParser(this IServiceCollection services)
+        public static IServiceCollection AddParser(this IServiceCollection services)
         {
-            services.AddSingleton<PuzzleParserFactory>();
-            services.AddSingleton<IPuzzlePageParser, RavensBurgerParser>();
-            services.AddSingleton<IPuzzlePageParser, SchmidtParser>();
-            services.AddSingleton<CompetitionParserFactory>();
-            services.AddSingleton<ICompetitionParser,AepuzzParser>();
+            services.AddScoped<PuzzleParserFactory>();
+            services.AddScoped<IPuzzlePageParser, RavensBurgerParser>();
+            services.AddScoped<IPuzzlePageParser, SchmidtParser>();
+            services.AddScoped<CompetitionParserFactory>();
+            services.AddScoped<ICompetitionParser,AepuzzParser>();
             return services;
         }
     }

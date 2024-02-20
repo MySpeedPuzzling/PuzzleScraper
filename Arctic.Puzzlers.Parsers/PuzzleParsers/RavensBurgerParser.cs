@@ -28,7 +28,7 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
                     if(puzzle != null)
                     {
                         puzzles.Add(puzzle);
-                        m_logger.LogInformation(puzzle.ToString());
+                        m_logger.LogInformation(puzzle.Name);
                     }                   
                     Thread.Sleep(1000);
                 }

@@ -2,6 +2,9 @@ using Arctic.Puzzlers.Objects.CompetitionObjects;
 using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Arctic.Puzzlers.Parsers.CompetitionParsers;
 using Arctic.Puzzlers.Parsers.PuzzleParsers;
+using Arctic.Puzzlers.Stores;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Arctic.Puzzlers.Worker
@@ -9,8 +12,7 @@ namespace Arctic.Puzzlers.Worker
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private readonly PuzzleParserFactory m_puzzleFactory;
-        private readonly CompetitionParserFactory m_competitionFactory;
+        private readonly IServiceScopeFactory m_serviceScopeFactory;
         private readonly List<Tuple<string,BrandName>> m_brandUrls = new List<Tuple<string, BrandName>>()
         {
             new Tuple<string,BrandName>("https://www.schmidtspiele.de/puzzles-437.html?label=Schmidt+Spiele&thema=&kat=Erwachsenenpuzzle#filter", BrandName.Schmidt),
@@ -28,16 +30,23 @@ namespace Arctic.Puzzlers.Worker
             new Tuple<string, CompetitionType,BrandName, string>("https://www.worldjigsawpuzzle.org/wjpc/2019/individual/final", CompetitionType.WJPCSingle, BrandName.Ravensburger,  "")
         };
 
-        public Worker(ILogger<Worker> logger, PuzzleParserFactory puzzleFactory, CompetitionParserFactory competitionFactory)
+        public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
-            m_puzzleFactory = puzzleFactory;
-            m_competitionFactory = competitionFactory;                          
+            m_serviceScopeFactory = serviceScopeFactory;                     
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            while (!stoppingToken.IsCancellationRequested) 
+            {
+                await DoWorkAsync(stoppingToken);
+            }
+        }
+
+        private async Task DoWorkAsync(CancellationToken stoppingToken)
+        {
+            using (IServiceScope scope = m_serviceScopeFactory.CreateScope())
             {
                 var puzzleList = new List<PuzzleExtended>();
                 var competitionList = new List<Competition>();
@@ -47,10 +56,10 @@ namespace Arctic.Puzzlers.Worker
                     {
                         _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                     }
-
+                    var competitionFactory = scope.ServiceProvider.GetRequiredService<CompetitionParserFactory>();
                     foreach (var competitionUrl in m_competitionUrls)
                     {
-                        var parser = m_competitionFactory.GetParser(competitionUrl.Item2);
+                        var parser = competitionFactory.GetParser(competitionUrl.Item2);
 
                         if (parser != null)
                         {
@@ -58,10 +67,10 @@ namespace Arctic.Puzzlers.Worker
                         }
 
                     }
-
+                    var puzzleFactory = scope.ServiceProvider.GetRequiredService<PuzzleParserFactory>();
                     foreach (var brandPage in m_brandUrls)
                     {
-                        var parser = m_puzzleFactory.GetParser(brandPage.Item2);
+                        var parser = puzzleFactory.GetParser(brandPage.Item2);
 
                         if (parser != null)
                         {
@@ -69,13 +78,19 @@ namespace Arctic.Puzzlers.Worker
                         }
 
                     }
-                                         
-                    await Task.Delay(1 * 24 * 60 * 60 * 1000, stoppingToken);
+                    await scope.ServiceProvider.GetRequiredService<FullDataStoreFactory>().StoreData(competitionList, puzzleList);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     _logger.LogError(ex, "something went wrong");
                 }
             }
+        }
+
+        public override async Task StopAsync(CancellationToken stoppingToken)
+        {
+
+            await base.StopAsync(stoppingToken);
         }
     }
 }

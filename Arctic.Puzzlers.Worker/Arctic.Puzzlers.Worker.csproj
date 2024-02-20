@@ -15,5 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Arctic.Puzzlers.Parsers\Arctic.Puzzlers.Parsers.csproj" />
+    <ProjectReference Include="..\Arctic.Puzzlers.Stores\Arctic.Puzzlers.Stores.csproj" />
   </ItemGroup>
 </Project>
