@@ -2,6 +2,7 @@
 using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Arctic.Puzzlers.Stores.Filestore
 {
@@ -17,10 +18,16 @@ namespace Arctic.Puzzlers.Stores.Filestore
         {
             var folder = m_configuration.GetFileOutputFolder();
             var fileName = Path.Combine(folder, "data" + DateTime.Now.ToString("yyyyMMddTHHmmss") + ".json");
+            var SerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                Converters = { new JsonStringEnumConverter() },
+                WriteIndented = true
+            };
             await using (FileStream createStream = File.Create(fileName))
             {
                 var outputdata = new OutputData() { Competitions = competitions, Puzzles = puzzles };
-                await JsonSerializer.SerializeAsync(createStream, outputdata);
+                await JsonSerializer.SerializeAsync(createStream, outputdata, SerializerOptions);
             }
         }
 

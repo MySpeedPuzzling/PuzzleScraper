@@ -120,9 +120,13 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                         }
                         ResolveContestType(competitionObject);
                         
-                        m_logger.LogInformation(competitionObject.Name);
                         
-                        competitions.Add(competitionObject);
+                        
+                        var added = competitions.AddCompetitionIfNew(competitionObject);
+                        if(added)
+                        {
+                            m_logger.LogInformation(competitionObject.Name);
+                        }
                     }
                 }
                 catch (Exception ex)
