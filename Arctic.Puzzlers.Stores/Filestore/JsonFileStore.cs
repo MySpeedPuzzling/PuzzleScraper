@@ -1,8 +1,11 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
 using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Microsoft.Extensions.Configuration;
+using System.Text.Encodings.Web;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Unicode;
 
 namespace Arctic.Puzzlers.Stores.Filestore
 {
@@ -22,7 +25,9 @@ namespace Arctic.Puzzlers.Stores.Filestore
             {
                 PropertyNameCaseInsensitive = true,
                 Converters = { new JsonStringEnumConverter() },
-                WriteIndented = true
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+
             };
             await using (FileStream createStream = File.Create(fileName))
             {

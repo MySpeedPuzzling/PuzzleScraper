@@ -13,6 +13,7 @@ namespace Arctic.Puzzlers.Worker
     {
         private readonly ILogger<Worker> _logger;
         private readonly IServiceScopeFactory m_serviceScopeFactory;
+        private readonly IConfiguration m_configuration;
         private readonly List<Tuple<string,BrandName>> m_brandUrls = new List<Tuple<string, BrandName>>()
         {
             new Tuple<string,BrandName>("https://www.schmidtspiele.de/puzzles-437.html?label=Schmidt+Spiele&thema=&kat=Erwachsenenpuzzle#filter", BrandName.Schmidt),
@@ -30,10 +31,11 @@ namespace Arctic.Puzzlers.Worker
             new Tuple<string, CompetitionType,BrandName, string>("https://www.worldjigsawpuzzle.org/wjpc/2019/individual/final", CompetitionType.WJPCSingle, BrandName.Ravensburger,  "")
         };
 
-        public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory)
+        public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IConfiguration configuration)
         {
             _logger = logger;
-            m_serviceScopeFactory = serviceScopeFactory;                     
+            m_serviceScopeFactory = serviceScopeFactory;
+            m_configuration = configuration;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -41,6 +43,11 @@ namespace Arctic.Puzzlers.Worker
             while (!stoppingToken.IsCancellationRequested) 
             {
                 await DoWorkAsync(stoppingToken);
+                var runMode = m_configuration.GetRunMode();
+                if(!string.IsNullOrEmpty(runMode) && runMode.ToLower().Equals("once"))
+                {
+                    break;
+                }
             }
         }
 

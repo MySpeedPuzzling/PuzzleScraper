@@ -68,14 +68,15 @@ namespace Arctic.Puzzlers.CLI.InputParsing
         public async Task<List<Competition>> Parse(string url)
         {
             var competitions = new List<Competition>();
-            for (int i = 1; i < 1000; i++)
+            for (int i = 1; i < 500; i++)
             {
+                string currentUrl = url;
                 try
                 {
                     for (int x = 1; x < 4; x++)
                     {
                         var competitionObject = new Competition();
-                        var currentUrl = url + $"?id={i}&cat={x}";
+                        currentUrl = url + $"?id={i}&cat={x}";
 
                         competitionObject.Url = currentUrl;
                         var web = new HtmlWeb();
@@ -131,7 +132,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                 }
                 catch (Exception ex)
                 {
-                    m_logger.LogInformation(ex,$"Could not parse data from {url} due to exception");
+                    m_logger.LogInformation(ex,$"Could not parse data from {currentUrl} due to exception");
                 }
             }
 
