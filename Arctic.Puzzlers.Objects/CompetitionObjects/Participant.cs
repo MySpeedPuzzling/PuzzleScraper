@@ -12,6 +12,6 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
         
         public Countries? Country { get; set; }
 
-        public string? Identifier { get; set; }
+        public string? PageIdentifier { get; set; }
     }
 }

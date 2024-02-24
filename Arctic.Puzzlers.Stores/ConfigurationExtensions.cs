@@ -5,16 +5,21 @@ namespace Arctic.Puzzlers.Stores
     public static class ConfigurationExtensions
     {
         private const string FileOutputFolderKey = "ResultOutputFolder";
-        private const string OutputTypesKey = "OutputTypes";
+        private const string OverrideDataKey = "OverrideData";
 
         public static string GetFileOutputFolder(this IConfiguration configuration)
         {
             return configuration[FileOutputFolderKey] ?? string.Empty;
         }
 
-        public static string GetOutputTypes(this IConfiguration configuration)
+        public static bool OverrideData(this IConfiguration configuration)
         {
-            return configuration[OutputTypesKey] ?? string.Empty;
+            var overrideData= configuration[OverrideDataKey];
+            if (string.IsNullOrEmpty(overrideData))
+            {
+                return false;
+            }
+            return bool.Parse(overrideData);
         }
     }
 }

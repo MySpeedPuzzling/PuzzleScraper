@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Arctic.Puzzlers.Objects\Arctic.Puzzlers.Objects.csproj" />
+    <ProjectReference Include="..\Arctic.Puzzlers.Stores\Arctic.Puzzlers.Stores.csproj" />
   </ItemGroup>
 
 </Project>

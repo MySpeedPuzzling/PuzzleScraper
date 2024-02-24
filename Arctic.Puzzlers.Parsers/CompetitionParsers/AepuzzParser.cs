@@ -1,6 +1,7 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
 using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Arctic.Puzzlers.Parsers.CompetitionParsers;
+using Arctic.Puzzlers.Stores;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
@@ -11,10 +12,12 @@ namespace Arctic.Puzzlers.CLI.InputParsing
     public class AepuzzParser: ICompetitionParser
     {
         private readonly ILogger<AepuzzParser> m_logger;
+        private readonly ICompetitionStore m_store;
 
-        public AepuzzParser(ILogger<AepuzzParser> logger) 
+        public AepuzzParser(ILogger<AepuzzParser> logger, ICompetitionStore store) 
         {
             m_logger = logger;
+            m_store = store;
         }
 
         internal void ResolveContestType(Competition competitionObject)
@@ -65,22 +68,30 @@ namespace Arctic.Puzzlers.CLI.InputParsing
             competitor.Participants.Add(participantResult);
         }
 
-        public async Task<List<Competition>> Parse(string url)
+        public async Task Parse(string url)
         {
-            var competitions = new List<Competition>();
             for (int i = 1; i < 500; i++)
             {
-                string currentUrl = url;
+                string currentUrl = url;                
                 try
                 {
                     for (int x = 1; x < 4; x++)
                     {
                         var competitionObject = new Competition();
                         currentUrl = url + $"?id={i}&cat={x}";
-
+                        var needToParse = await m_store.NeedToParse(currentUrl);
+                        if (!needToParse)
+                        {
+                            continue;
+                        }
                         competitionObject.Url = currentUrl;
                         var web = new HtmlWeb();
                         var doc = web.Load(currentUrl);
+
+                        if(doc?.DocumentNode?.SelectSingleNode("body")?.InnerText?.StartsWith("No existe") ?? false)
+                        {
+                            continue;
+                        }
                         var imageUrl = doc?.DocumentNode?.SelectSingleNode("//img[contains(@src,'imagenes')]")?.GetAttributeValue("src", "");
                         if (!string.IsNullOrEmpty(imageUrl))
                         {
@@ -119,11 +130,10 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                             }
                             AddResult(competitionObject, values);
                         }
-                        ResolveContestType(competitionObject);
+                        ResolveContestType(competitionObject);                       
                         
                         
-                        
-                        var added = competitions.AddCompetitionIfNew(competitionObject);
+                        var added = await m_store.Store(competitionObject);
                         if(added)
                         {
                             m_logger.LogInformation(competitionObject.Name);
@@ -135,8 +145,6 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                     m_logger.LogInformation(ex,$"Could not parse data from {currentUrl} due to exception");
                 }
             }
-
-            return competitions;
         }
         
         public BrandName ParseBrandName(string name)

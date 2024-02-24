@@ -1,4 +1,5 @@
 ﻿using Arctic.Puzzlers.Objects.PuzzleObjects;
+using Arctic.Puzzlers.Stores;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
@@ -8,14 +9,15 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
     public class RavensBurgerParser : IPuzzlePageParser
     {
         private ILogger<RavensBurgerParser> m_logger;
-
+        private readonly IPuzzleStore m_store;
         private List<long> m_allowedSizes = new List<long>() { 200, 300, 500, 1000 };
 
-        public RavensBurgerParser(ILogger<RavensBurgerParser> logger) 
+        public RavensBurgerParser(ILogger<RavensBurgerParser> logger, IPuzzleStore store) 
         {
             m_logger = logger;
+            m_store = store;
         }
-        public async Task<List<PuzzleExtended>> Parse(string url)
+        public async Task Parse(string url)
         {
             var linksToPuzzles = GetAllLinksPerPage(url);
             var puzzles = new List<PuzzleExtended>();
@@ -27,10 +29,13 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
                     var puzzle = await ParseSpecificPage(puzzleUrl);  
                     if(puzzle != null)
                     {
-                        puzzles.Add(puzzle);
-                        m_logger.LogInformation(puzzle.Name);
-                    }                   
-                    Thread.Sleep(1000);
+                        var isStored = await m_store.Store(puzzle);
+                        if (isStored)
+                        {
+                            m_logger.LogInformation(puzzle.Name);
+                        }
+                    }
+                    
                 }
                 catch (Exception e)
                 {
@@ -40,17 +45,23 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
                 }
 
             }
-            return puzzles;
         }
 
         private async Task<PuzzleExtended?> ParseSpecificPage(string url)
         {
             var web = new HtmlWeb();
+            var needToParse = await m_store.NeedToParse(url);
+            if(!needToParse)
+            {
+                return null;
+            }
             var doc = await web.LoadFromWebAsync(url);
+           
             var numberOfPiecesNode = doc.DocumentNode.SelectSingleNode("//div[starts-with(@title,'Piece Count')]/a/div[not(@class)]");
             var barcode = doc.DocumentNode.SelectSingleNode("//div[@class='specificationContainer']");
             var title = doc.DocumentNode.SelectSingleNode("//title");
             var puzzleObject = new PuzzleExtended();
+            puzzleObject.Url = url;
             if(numberOfPiecesNode == null)
             {
                 return null;
@@ -68,6 +79,8 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
             var imageUrl = baseUrl?.Scheme + "://" + baseUrl?.Authority + $"/produktseiten/1024/{puzzleObject.ShortId}.webp";
             puzzleObject.Name = title.InnerText.Split('|').First().CleanUpName();
             puzzleObject.ImageUrls.Add(imageUrl);
+            
+            Thread.Sleep(1000);
             return puzzleObject;
         }
 

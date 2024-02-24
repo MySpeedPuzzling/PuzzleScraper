@@ -4,7 +4,7 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
 {
     public interface IPuzzlePageParser 
     {
-        Task<List<PuzzleExtended>> Parse(string url);
+        Task Parse(string url);
         bool SupportsBrand(BrandName brandName);
     }
 }

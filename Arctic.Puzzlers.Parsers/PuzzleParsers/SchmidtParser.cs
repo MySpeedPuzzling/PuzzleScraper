@@ -1,4 +1,5 @@
 ﻿using Arctic.Puzzlers.Objects.PuzzleObjects;
+using Arctic.Puzzlers.Stores;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 namespace Arctic.Puzzlers.Parsers.PuzzleParsers
@@ -7,11 +8,13 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
     {
         private readonly ILogger<SchmidtParser> m_logger;
         private List<long> m_allowedSizes = new List<long>() { 200, 300, 500, 1000 };
-        public SchmidtParser(ILogger<SchmidtParser> logger)
+        private readonly IPuzzleStore m_store;
+        public SchmidtParser(ILogger<SchmidtParser> logger, IPuzzleStore store)
         {
             m_logger = logger;
+            m_store = store;
         }
-        public async Task<List<PuzzleExtended>> Parse(string url)
+        public async Task Parse(string url)
         {
             var linksToPuzzles = GetAllLinksPerPage(url);
             var puzzles = new List<PuzzleExtended>();
@@ -23,8 +26,11 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
                     var puzzle = await ParseSpecificPage(puzzleUrl);
                     if(puzzle != null) 
                     {
-                        puzzles.Add(puzzle);
-                        m_logger.LogInformation(puzzle.Name);
+                        var stored = await m_store.Store(puzzle);
+                        if (stored)
+                        {
+                            m_logger.LogInformation(puzzle.Name);
+                        }
                     }
                 }
                 catch (Exception e)
@@ -35,7 +41,6 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
                 }
 
             }
-            return puzzles;
         }
         internal string GetBaseUrl(string url)
         {
@@ -48,6 +53,11 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
         {
             var web = new HtmlWeb();
             var doc = web.Load(url);
+            var needToParse = await m_store.NeedToParse(url);
+            if (!needToParse)
+            {
+                return null;
+            }
             var title = doc.DocumentNode.SelectSingleNode("//title");
             var titleParts = title.InnerText.Split(',');            
             var lastTitleParts = titleParts.Last().Split('-');
@@ -70,6 +80,7 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
                 name = titleParts[0];
             }
             var puzzle = new PuzzleExtended();
+            puzzle.Url = url;
             var numberOfPieces = long.Parse(string.Join("", pieces.InnerText.Where(c => Char.IsDigit(c) || c == '.')));
             if(!m_allowedSizes.Any(t=> t == numberOfPieces))
             {
@@ -79,7 +90,8 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
             puzzle.BrandName = BrandName.Schmidt;
             puzzle.ShortId = long.Parse(shortid) ;
             var images = doc.DocumentNode.SelectNodes("//figure/img");
-            var imageUrl = GetBaseUrl(url) + "/" + images.First().GetAttributeValue("src","");
+            var image= images.FirstOrDefault(t=> t.GetAttributeValue("src", "").Contains("Motiv")) ?? images.First();
+            var imageUrl = GetBaseUrl(url) + "/" + image.GetAttributeValue("src","");
             puzzle.Name = name.CleanUpName();
             puzzle.ImageUrls.Add(imageUrl);
             return puzzle;

@@ -6,17 +6,14 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
     public class PuzzleParserFactory
     {
         private IEnumerable<IPuzzlePageParser> m_parsers;
-        private ILogger<PuzzleParserFactory> m_logger;
-        public PuzzleParserFactory(IEnumerable<IPuzzlePageParser> parsers, ILogger<PuzzleParserFactory> logger) 
+        public PuzzleParserFactory(IEnumerable<IPuzzlePageParser> parsers) 
         {
             m_parsers = parsers;
-            m_logger = logger;
         }
 
-        public IPuzzlePageParser? GetParser(BrandName brandName)
+        public IPuzzlePageParser GetParser(BrandName brandName)
         {
-            var returnvalue = m_parsers.FirstOrDefault(t => t.SupportsBrand(brandName));
-            m_logger.LogInformation($"Could not find any parser for {brandName} ");
+            var returnvalue = m_parsers.First(t => t.SupportsBrand(brandName));
             return returnvalue;
         }
     }

@@ -55,8 +55,6 @@ namespace Arctic.Puzzlers.Worker
         {
             using (IServiceScope scope = m_serviceScopeFactory.CreateScope())
             {
-                var puzzleList = new List<PuzzleExtended>();
-                var competitionList = new List<Competition>();
                 try
                 {
                     if (_logger.IsEnabled(LogLevel.Information))
@@ -67,11 +65,7 @@ namespace Arctic.Puzzlers.Worker
                     foreach (var competitionUrl in m_competitionUrls)
                     {
                         var parser = competitionFactory.GetParser(competitionUrl.Item2);
-
-                        if (parser != null)
-                        {
-                            competitionList.AddRange(await parser.Parse(competitionUrl.Item1));
-                        }
+                        await parser.Parse(competitionUrl.Item1);
 
                     }
                     var puzzleFactory = scope.ServiceProvider.GetRequiredService<PuzzleParserFactory>();
@@ -79,13 +73,8 @@ namespace Arctic.Puzzlers.Worker
                     {
                         var parser = puzzleFactory.GetParser(brandPage.Item2);
 
-                        if (parser != null)
-                        {
-                            puzzleList.AddRange(await parser.Parse(brandPage.Item1));
-                        }
-
+                        await parser.Parse(brandPage.Item1);
                     }
-                    await scope.ServiceProvider.GetRequiredService<FullDataStoreFactory>().StoreData(competitionList, puzzleList);
                 }
                 catch (Exception ex)
                 {

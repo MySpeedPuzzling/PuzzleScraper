@@ -7,10 +7,9 @@ namespace Arctic.Puzzlers.Stores
     {
         public static IServiceCollection AddDataStores(this IServiceCollection services)
         {
-            services.AddScoped<FullDataStoreFactory>();
-            services.AddScoped<IFullDataStorage, JsonFileStore>();
+            services.AddScoped<IPuzzleStore, JsonPuzzleStore>();
+            services.AddScoped<ICompetitionStore, JsonCompetitionStore>();
             return services;
-
         }
     }
 }
