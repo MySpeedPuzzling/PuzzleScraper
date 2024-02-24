@@ -88,7 +88,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                         var web = new HtmlWeb();
                         var doc = web.Load(currentUrl);
 
-                        if(doc?.DocumentNode?.SelectSingleNode("body")?.InnerText?.StartsWith("No existe") ?? false)
+                        if(doc?.DocumentNode?.InnerText?.Contains("No existe") ?? false)
                         {
                             continue;
                         }
