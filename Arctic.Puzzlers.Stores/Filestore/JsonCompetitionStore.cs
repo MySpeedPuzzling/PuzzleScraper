@@ -13,7 +13,7 @@ namespace Arctic.Puzzlers.Stores.Filestore
         private readonly IConfiguration m_configuration;
         private const string JsonFileName = "competitiondata.json";
         private const string m_storeType = "file";
-        private List<Competition> m_competitionList;
+        private List<CompetitionRound> m_competitionList;
         private JsonSerializerOptions m_serializeOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -24,7 +24,7 @@ namespace Arctic.Puzzlers.Stores.Filestore
         };
         public JsonCompetitionStore(IConfiguration config) 
         {
-            m_competitionList = new List<Competition>();
+            m_competitionList = new List<CompetitionRound>();
             m_configuration = config;
             Init();
            
@@ -66,7 +66,7 @@ namespace Arctic.Puzzlers.Stores.Filestore
         }
 
 
-        public Task<bool> Store(Competition competition)
+        public Task<bool> Store(CompetitionRound competition)
         {
             if (m_configuration.OverrideData())
             {

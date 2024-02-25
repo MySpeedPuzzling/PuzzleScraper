@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
+using Microsoft.Extensions.Logging;
 
 namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 {
@@ -10,7 +11,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             m_parsers = parsers;
         }
 
-        public ICompetitionParser? GetParser(CompetitionType competitionType)
+        public ICompetitionParser? GetParser(CompetitionOwner competitionType)
         {
             var returnvalue = m_parsers.First(t => t.SupportCompetitionType(competitionType));
             return returnvalue;

@@ -21,14 +21,14 @@ namespace Arctic.Puzzlers.Worker
             new Tuple<string, BrandName>("https://www.ravensburger.org/no/produkte/puslespill/index.html", BrandName.Ravensburger)
         };
 
-        private readonly List<Tuple<string, CompetitionType>> m_competitionUrls = new List<Tuple<string, CompetitionType>>()
+        private readonly List<Tuple<string, CompetitionOwner>> m_competitionUrls = new List<Tuple<string, CompetitionOwner>>()
         {
-            new Tuple<string, CompetitionType>("https://aepuzz.es/usuarios/clasificacion.php", CompetitionType.AePuzz)
+            new Tuple<string, CompetitionOwner>("https://aepuzz.es/usuarios", CompetitionOwner.AePuzz)
         };
 
-        private readonly List<Tuple<string, CompetitionType, BrandName, string>> m_singlecompetitionUrls = new List<Tuple<string, CompetitionType, BrandName,string>>()
+        private readonly List<Tuple<string, CompetitionOwner, BrandName, string>> m_singlecompetitionUrls = new List<Tuple<string, CompetitionOwner, BrandName,string>>()
         {
-            new Tuple<string, CompetitionType,BrandName, string>("https://www.worldjigsawpuzzle.org/wjpc/2019/individual/final", CompetitionType.WJPCSingle, BrandName.Ravensburger,  "")
+            new Tuple<string, CompetitionOwner,BrandName, string>("https://www.worldjigsawpuzzle.org/wjpc/2019/individual/final", CompetitionOwner.WJPC, BrandName.Ravensburger,  "")
         };
 
         public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IConfiguration configuration)

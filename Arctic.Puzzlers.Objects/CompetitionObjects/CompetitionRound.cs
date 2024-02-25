@@ -1,17 +1,18 @@
 ﻿
 using Arctic.Puzzlers.Objects.PuzzleObjects;
-using System.Text.Json.Serialization;
 
 namespace Arctic.Puzzlers.Objects.CompetitionObjects
 {
-    public class Competition
+    public class CompetitionRound
     {
-        public Competition()
+        public CompetitionRound()
         {
             Participants = new List<ParticipantResult>();
             Puzzles = new List<Puzzle>();
         }
-        public string Name { get; set; }
+        public string RoundName { get; set; }
+        public bool IsQualificationRound {  get; set; }
+        
         public ContestType ContestType { get; set; }
         public List<ParticipantResult> Participants { get; set; }
         public List<Puzzle> Puzzles { get; set; }

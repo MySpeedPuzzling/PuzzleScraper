@@ -20,7 +20,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
             m_store = store;
         }
 
-        internal void ResolveContestType(Competition competitionObject)
+        internal void ResolveContestType(CompetitionRound competitionObject)
         {
             if(competitionObject.Participants.All(t=> t.Participants.Count <=1))
             {
@@ -41,7 +41,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
         }
 
 
-        internal void AddResult(Competition competitor, HtmlNodeCollection values)
+        internal void AddResult(CompetitionRound competitor, HtmlNodeCollection values, string baseurl)
         {
             var participantResult = new ParticipantResult();
             var names = values[2].SelectNodes("div/a");
@@ -49,7 +49,11 @@ namespace Arctic.Puzzlers.CLI.InputParsing
             {
                 for(int i =0 ; names.Count > i; i++)
                 {
-                    participantResult.Participants.Add(new Participant { FullName= names[i].InnerText, Country= Objects.Misc.Countries.ESP });                
+                    var personRelativeUrl = names[i].Attributes["href"];
+                    var fullurl = baseurl + "/" +personRelativeUrl.Value;
+                    var identifier = Regex.Match(personRelativeUrl.Value, @"\d+").Value;
+                    var parsedIdentifier = new ParsedIdentifier { UserOwner = CompetitionOwner.AePuzz, Identifier = identifier, OriginalUrl = fullurl };
+                    participantResult.Participants.Add(new Participant { FullName= names[i].InnerText, Country = Objects.Misc.Countries.ESP , ParsedIdentifier = parsedIdentifier });                
                 }
             }
             var result = values[4].InnerText;
@@ -70,73 +74,53 @@ namespace Arctic.Puzzlers.CLI.InputParsing
 
         public async Task Parse(string url)
         {
+            string currentUrl = url;
             for (int i = 1; i < 500; i++)
             {
-                string currentUrl = url;                
                 try
                 {
-                    for (int x = 1; x < 4; x++)
+                    
+                    currentUrl = url + $"/clasificacion.php?id={i}";
+                    var web = new HtmlWeb();
+                    var mainPage = web.Load(currentUrl);
+                    var htmlNodes = mainPage.DocumentNode.SelectNodes("//div[@class = 'nav nav-underline']/a");
+                    if (htmlNodes == null || !htmlNodes.Any())
                     {
-                        var competitionObject = new Competition();
-                        currentUrl = url + $"?id={i}&cat={x}";
+                        var competitionObject = ParseWebPage(mainPage, currentUrl, url);
+                        if (competitionObject == null)
+                        {
+                            continue;
+                        }
+                        var added = await m_store.Store(competitionObject);
+                        if (added)
+                        {
+                            m_logger.LogInformation(competitionObject.RoundName);
+                        }
+                        continue;
+                    }             
+               
+                    foreach (HtmlNode pages in htmlNodes)
+                    {
+                        
+                        currentUrl = url + pages.Attributes["href"].Value;
                         var needToParse = await m_store.NeedToParse(currentUrl);
                         if (!needToParse)
                         {
                             continue;
                         }
-                        competitionObject.Url = currentUrl;
-                        var web = new HtmlWeb();
+                        
                         var doc = web.Load(currentUrl);
 
-                        if(doc?.DocumentNode?.InnerText?.Contains("No existe") ?? false)
+
+                        var competitionObject = ParseWebPage(doc, currentUrl, url);
+                        if (competitionObject == null)
                         {
                             continue;
                         }
-                        var imageUrl = doc?.DocumentNode?.SelectSingleNode("//img[contains(@src,'imagenes')]")?.GetAttributeValue("src", "");
-                        if (!string.IsNullOrEmpty(imageUrl))
-                        {
-                            var imagename = imageUrl.Split('/').Last().Split('_');
-                            var brandName = string.Concat(imagename.First()[0].ToString().ToUpper(), imagename.First().AsSpan(1));
-                            var shortId = long.Parse(imagename.Last().Replace(".jpg", ""));
-                            competitionObject.Puzzles.Add(new Puzzle { BrandName = ParseBrandName(brandName), ShortId = shortId });
-                        }
-                        else
-                        {
-                            competitionObject.Puzzles.Add(new Puzzle { BrandName = BrandName.Unknown, ShortId = 0 });
-                        }
-                        competitionObject.Name = doc.DocumentNode.SelectSingleNode("//h1[@class='display-4']").InnerText;
-                        var placeAndTime = doc.DocumentNode.SelectSingleNode("//p[@class='lead']").InnerText;
-
-                        if (!string.IsNullOrEmpty(placeAndTime))
-                        {
-                            var placeAndTimeList = placeAndTime.Split('.', 2);
-                            if (placeAndTimeList.Length == 2)
-                            {
-                                var datetimeString = placeAndTimeList[0].Replace(" ", string.Empty);
-                                if (DateTime.TryParseExact(datetimeString, "dd/MM/yyyy-HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime time))
-                                {
-                                    competitionObject.Time = time;
-                                }
-                                competitionObject.Location = placeAndTimeList[1];
-                            }
-                        }
-
-                        foreach (HtmlNode tableLine in doc.DocumentNode.SelectNodes("//tr"))
-                        {
-                            var values = tableLine.SelectNodes("td");
-                            if (values == null || values.Count() == 0)
-                            {
-                                continue;
-                            }
-                            AddResult(competitionObject, values);
-                        }
-                        ResolveContestType(competitionObject);                       
-                        
-                        
                         var added = await m_store.Store(competitionObject);
                         if(added)
                         {
-                            m_logger.LogInformation(competitionObject.Name);
+                            m_logger.LogInformation(competitionObject.RoundName);
                         }
                     }
                 }
@@ -146,6 +130,55 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                 }
             }
         }
+        public CompetitionRound ParseWebPage(HtmlDocument doc, string currentUrl, string baseUrl)
+        {
+            var competitionObject = new CompetitionRound();
+            competitionObject.Url = currentUrl;
+            if (doc?.DocumentNode?.InnerText?.Contains("No existe") ?? false)
+            {
+                return null;
+            }
+            var imageUrl = doc?.DocumentNode?.SelectSingleNode("//img[contains(@src,'imagenes')]")?.GetAttributeValue("src", "");
+            if (!string.IsNullOrEmpty(imageUrl))
+            {
+                var imagename = imageUrl.Split('/').Last().Split('_');
+                var brandName = string.Concat(imagename.First()[0].ToString().ToUpper(), imagename.First().AsSpan(1));
+                var shortId = long.Parse(imagename.Last().Replace(".jpg", ""));
+                competitionObject.Puzzles.Add(new Puzzle { BrandName = ParseBrandName(brandName), ShortId = shortId });
+            }
+            else
+            {
+                competitionObject.Puzzles.Add(new Puzzle { BrandName = BrandName.Unknown, ShortId = 0 });
+            }
+            competitionObject.RoundName = doc.DocumentNode.SelectSingleNode("//h1[@class='display-4']").InnerText;
+            var placeAndTime = doc.DocumentNode.SelectSingleNode("//p[@class='lead']").InnerText;
+
+            if (!string.IsNullOrEmpty(placeAndTime))
+            {
+                var placeAndTimeList = placeAndTime.Split('.', 2);
+                if (placeAndTimeList.Length == 2)
+                {
+                    var datetimeString = placeAndTimeList[0].Replace(" ", string.Empty);
+                    if (DateTime.TryParseExact(datetimeString, "dd/MM/yyyy-HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime time))
+                    {
+                        competitionObject.Time = time;
+                    }
+                    competitionObject.Location = placeAndTimeList[1];
+                }
+            }
+
+            foreach (HtmlNode tableLine in doc.DocumentNode.SelectNodes("//tr"))
+            {
+                var values = tableLine.SelectNodes("td");
+                if (values == null || values.Count() == 0)
+                {
+                    continue;
+                }
+                AddResult(competitionObject, values, baseUrl);
+            }
+            ResolveContestType(competitionObject);
+            return competitionObject;
+        } 
         
         public BrandName ParseBrandName(string name)
         {
@@ -172,9 +205,9 @@ namespace Arctic.Puzzlers.CLI.InputParsing
             return BrandName.Unknown;
         }
 
-        public bool SupportCompetitionType(CompetitionType competitionType)
+        public bool SupportCompetitionType(CompetitionOwner competitionType)
         {
-            return competitionType.Equals(CompetitionType.AePuzz);
+            return competitionType.Equals(CompetitionOwner.AePuzz);
         }
     }
 }

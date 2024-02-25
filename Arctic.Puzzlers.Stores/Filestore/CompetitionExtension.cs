@@ -4,12 +4,12 @@ namespace Arctic.Puzzlers.Stores.Filestore
 {
     public static class CompetitionExtension
     {
-        public static bool AddCompetitionIfNew(this List<Competition> competitions, Competition newCompetition)
+        public static bool AddCompetitionIfNew(this List<CompetitionRound> competitions, CompetitionRound newCompetition)
         {
             if (competitions.Any(t =>
                 t.Time == newCompetition.Time &&
                 t.ContestType == newCompetition.ContestType &&
-                t.Name == newCompetition.Name &&
+                t.RoundName == newCompetition.RoundName &&
                 t.Participants.Count() == newCompetition.Participants.Count()))
             {
                 return false;

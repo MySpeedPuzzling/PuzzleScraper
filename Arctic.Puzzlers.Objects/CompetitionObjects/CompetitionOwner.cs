@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Arctic.Puzzlers.Parsers.CompetitionParsers
+namespace Arctic.Puzzlers.Objects.CompetitionObjects
 {
-    public enum CompetitionType
+    public enum CompetitionOwner
     {
         AePuzz,
-        WJPC,
-        WJPCSingle
+        WJPC
     }
 }
