@@ -1,5 +1,6 @@
 ﻿
 using Arctic.Puzzlers.Objects.PuzzleObjects;
+using System.Text.Json.Serialization;
 
 namespace Arctic.Puzzlers.Objects.CompetitionObjects
 {
@@ -13,6 +14,7 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
         public string RoundName { get; set; }
         public bool IsQualificationRound {  get; set; }
         
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public ContestType ContestType { get; set; }
         public List<ParticipantResult> Participants { get; set; }
         public List<Puzzle> Puzzles { get; set; }

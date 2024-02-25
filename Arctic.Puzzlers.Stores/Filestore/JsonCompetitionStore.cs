@@ -17,7 +17,6 @@ namespace Arctic.Puzzlers.Stores.Filestore
         private JsonSerializerOptions m_serializeOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            Converters = { new JsonStringEnumConverter() },
             WriteIndented = true,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
 

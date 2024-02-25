@@ -68,13 +68,13 @@ namespace Arctic.Puzzlers.Worker
                         await parser.Parse(competitionUrl.Item1);
 
                     }
-                    var puzzleFactory = scope.ServiceProvider.GetRequiredService<PuzzleParserFactory>();
-                    foreach (var brandPage in m_brandUrls)
-                    {
-                        var parser = puzzleFactory.GetParser(brandPage.Item2);
+                    //var puzzleFactory = scope.ServiceProvider.GetRequiredService<PuzzleParserFactory>();
+                    //foreach (var brandPage in m_brandUrls)
+                    //{
+                    //    var parser = puzzleFactory.GetParser(brandPage.Item2);
 
-                        await parser.Parse(brandPage.Item1);
-                    }
+                    //    await parser.Parse(brandPage.Item1);
+                    //}
                 }
                 catch (Exception ex)
                 {
