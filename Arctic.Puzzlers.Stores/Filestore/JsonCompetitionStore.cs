@@ -1,6 +1,7 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
 using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,17 +14,18 @@ namespace Arctic.Puzzlers.Stores.Filestore
         private readonly IConfiguration m_configuration;
         private const string JsonFileName = "competitiondata.json";
         private const string m_storeType = "file";
-        private List<CompetitionRound> m_competitionList;
+        private List<Competition> m_competitionList;
         private JsonSerializerOptions m_serializeOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
             WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
 
         };
         public JsonCompetitionStore(IConfiguration config) 
         {
-            m_competitionList = new List<CompetitionRound>();
+            m_competitionList = new List<Competition>();
             m_configuration = config;
             Init();
            
@@ -65,16 +67,20 @@ namespace Arctic.Puzzlers.Stores.Filestore
         }
 
 
-        public Task<bool> Store(CompetitionRound competition)
+        public Task<bool> Store(Competition competition)
         {
             if (m_configuration.OverrideData())
             {
-                m_competitionList.RemoveAll(t=> t.Url == competition.Url);
-                m_competitionList.AddCompetitionIfNew(competition);
+                m_competitionList.RemoveAll(t => t.Url == competition.Url);
+                m_competitionList.Add(competition);
                 return Task.FromResult(true);
             }
-            var isAdded = m_competitionList.AddCompetitionIfNew(competition);
-            return Task.FromResult(isAdded);
+            else if (!m_competitionList.Any(t => t.Url == t.Url))
+            {
+                m_competitionList.Add(competition);
+                Task.FromResult(true);
+            }
+            return Task.FromResult(false);
         }
 
         public Task<bool> NeedToParse(string url)

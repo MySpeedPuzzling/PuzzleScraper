@@ -4,7 +4,7 @@ namespace Arctic.Puzzlers.Stores
 {
     public interface ICompetitionStore : IDataStore
     {
-        public Task<bool> Store(CompetitionRound competition);
+        public Task<bool> Store(Competition competition);
         public Task<bool> NeedToParse(string url);
     }
 }

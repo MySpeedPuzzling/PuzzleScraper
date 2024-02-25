@@ -19,6 +19,7 @@ namespace Arctic.Puzzlers.Stores.Filestore
         {
             PropertyNameCaseInsensitive = true,
             WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
 
         };
