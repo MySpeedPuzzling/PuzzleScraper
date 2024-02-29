@@ -1,0 +1,6 @@
+@Arctic.Puzzlers.Webapi_HostAddress = http://localhost:5055
+
+GET {{Arctic.Puzzlers.Webapi_HostAddress}}/puzzle/
+Accept: application/json
+
+###

@@ -1,4 +1,4 @@
-﻿namespace Arctic.Puzzlers.Worker
+﻿namespace Arctic.Puzzlers.Webapi
 {
     public static class ConfigurationExtensions
     {

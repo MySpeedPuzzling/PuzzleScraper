@@ -110,10 +110,11 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                     competition.Name = competitionSingleRound.RoundName;
                     competition.Time = competitionSingleRound.Time;
                     competition.Location = competitionSingleRound.Location;
+                    competitionSingleRound.RoundType = RoundType.Final;
                     if (htmlNodes == null || !htmlNodes.Any())
                     {
                         var competitionGroup = new CompetitionGroup { ContestType = competitionSingleRound.ContestType };
-                        competitionGroup.Final = competitionSingleRound;
+                        competitionGroup.Rounds.Add(competitionSingleRound);
                         competition.CompetitionGroups.Add(competitionGroup);
                         var addedSingleCompetition = await m_store.Store(competition);
                         if (addedSingleCompetition)
@@ -136,8 +137,9 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                         {
                             continue;
                         }
+                        competitionObject.RoundType = RoundType.Final;
                         var competitionGroup = new CompetitionGroup { ContestType = competitionObject.ContestType };
-                        competitionGroup.Final = competitionObject;
+                        competitionGroup.Rounds.Add(competitionSingleRound);
                         competition.CompetitionGroups.Add(competitionGroup);                       
                     }
                     var added = await m_store.Store(competition);

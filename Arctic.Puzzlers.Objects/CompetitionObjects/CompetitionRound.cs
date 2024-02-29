@@ -12,7 +12,8 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
             Puzzles = new List<Puzzle>();
         }
         public string RoundName { get; set; }
-        
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public RoundType RoundType { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ContestType ContestType { get; set; }
         public List<ParticipantResult> Participants { get; set; }

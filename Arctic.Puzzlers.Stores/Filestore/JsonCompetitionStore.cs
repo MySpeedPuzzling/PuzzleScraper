@@ -13,7 +13,6 @@ namespace Arctic.Puzzlers.Stores.Filestore
     {
         private readonly IConfiguration m_configuration;
         private const string JsonFileName = "competitiondata.json";
-        private const string m_storeType = "file";
         private List<Competition> m_competitionList;
         private JsonSerializerOptions m_serializeOptions = new JsonSerializerOptions
         {
@@ -30,11 +29,6 @@ namespace Arctic.Puzzlers.Stores.Filestore
             Init();
            
         }      
-
-        public bool SupportedStoreType(string storeType)
-        {
-            return m_storeType.ToLower() == storeType.ToLower();
-        }
 
         public void Init()
         {
@@ -86,6 +80,11 @@ namespace Arctic.Puzzlers.Stores.Filestore
         public Task<bool> NeedToParse(string url)
         {
             return Task.FromResult(!m_competitionList.Any(t => url == t.Url) || m_configuration.OverrideData());
+        }
+
+        public Task<List<Competition>> GetAll()
+        {
+            return Task.FromResult(m_competitionList);
         }
     }
 }

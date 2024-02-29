@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34031.279
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arctic.Puzzlers.Worker", "Arctic.Puzzlers.Worker\Arctic.Puzzlers.Worker.csproj", "{5C000AAA-790F-4743-9976-3B87A993F31C}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arctic.Puzzlers.Parsers", "Arctic.Puzzlers.Parsers\Arctic.Puzzlers.Parsers.csproj", "{59C264C5-9ED7-412F-8F60-2EF80589B272}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{E4981DF9-7B4E-45B1-AD3E-93A11F13ACA5}"
@@ -16,7 +14,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestArctic.Puzzlers.Parsers
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arctic.Puzzlers.Objects", "Arctic.Puzzlers.Objects\Arctic.Puzzlers.Objects.csproj", "{DC3D16C7-845C-444E-A1CA-C94B3055ADE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arctic.Puzzlers.Stores", "Arctic.Puzzlers.Stores\Arctic.Puzzlers.Stores.csproj", "{3A4554C9-7704-468A-9D37-DCCD664B6CA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arctic.Puzzlers.Stores", "Arctic.Puzzlers.Stores\Arctic.Puzzlers.Stores.csproj", "{3A4554C9-7704-468A-9D37-DCCD664B6CA2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arctic.Puzzlers.Webapi", "Arctic.Puzzlers.Webapi\Arctic.Puzzlers.Webapi.csproj", "{B9A4CCCF-F255-4BD3-90A5-DCB4C5E3FAEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,10 +24,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5C000AAA-790F-4743-9976-3B87A993F31C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5C000AAA-790F-4743-9976-3B87A993F31C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5C000AAA-790F-4743-9976-3B87A993F31C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5C000AAA-790F-4743-9976-3B87A993F31C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{59C264C5-9ED7-412F-8F60-2EF80589B272}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{59C264C5-9ED7-412F-8F60-2EF80589B272}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59C264C5-9ED7-412F-8F60-2EF80589B272}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -44,6 +40,10 @@ Global
 		{3A4554C9-7704-468A-9D37-DCCD664B6CA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A4554C9-7704-468A-9D37-DCCD664B6CA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A4554C9-7704-468A-9D37-DCCD664B6CA2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9A4CCCF-F255-4BD3-90A5-DCB4C5E3FAEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9A4CCCF-F255-4BD3-90A5-DCB4C5E3FAEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9A4CCCF-F255-4BD3-90A5-DCB4C5E3FAEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9A4CCCF-F255-4BD3-90A5-DCB4C5E3FAEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
