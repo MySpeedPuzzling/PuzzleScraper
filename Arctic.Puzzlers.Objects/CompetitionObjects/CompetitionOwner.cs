@@ -9,6 +9,7 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
     public enum CompetitionOwner
     {
         AePuzz,
-        WJPC
+        WJPC,
+        SpeedPuzzling
     }
 }

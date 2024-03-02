@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Arctic.Puzzlers.Stores.MemoryStore
 {
-    internal class MemoryCompetitionStore : ICompetitionStore
+    public class MemoryCompetitionStore : ICompetitionStore
     {
         private readonly IConfiguration m_configuration;
         private List<Competition> m_competitionList;
