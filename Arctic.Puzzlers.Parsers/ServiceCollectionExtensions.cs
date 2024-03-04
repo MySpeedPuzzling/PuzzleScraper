@@ -13,7 +13,8 @@ namespace Arctic.Puzzlers.Parsers
             services.AddScoped<IPuzzlePageParser, RavensBurgerParser>();
             services.AddScoped<IPuzzlePageParser, SchmidtParser>();
             services.AddScoped<CompetitionParserFactory>();
-            services.AddScoped<ICompetitionParser,AepuzzParser>();
+            services.AddScoped<ICompetitionParser, AepuzzParser>();
+            services.AddHttpClient<ICompetitionParser, SpeedPuzzlingParser>();
             return services;
         }
     }

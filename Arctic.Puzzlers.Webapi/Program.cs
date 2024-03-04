@@ -20,11 +20,11 @@ app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {    
     app.UseSwaggerUI();
+    
 }
 
+app.Logger.LogInformation($"Started with puzzlestore {app.Services?.GetService<IPuzzleStore>()?.GetType()}");
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 

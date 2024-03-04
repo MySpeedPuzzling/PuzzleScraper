@@ -760,5 +760,8 @@ namespace Arctic.Puzzlers.Objects.Misc
 
         [Display(Name = "Netherlands Antilles", GroupName = "NA", Description = "530", ShortName = "AN")]
         ANT = 8505032,
+
+        [Display(Name = "Unknown", GroupName = "UNK", Description = "0", ShortName = "UNK")]
+        UNK = 0,
     }
 }

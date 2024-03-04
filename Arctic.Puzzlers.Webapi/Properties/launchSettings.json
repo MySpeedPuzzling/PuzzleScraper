@@ -34,7 +34,9 @@
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
       "environmentVariables": {
         "ASPNETCORE_HTTPS_PORTS": "8081",
-        "ASPNETCORE_HTTP_PORTS": "8080"
+        "ASPNETCORE_HTTP_PORTS": "8080",
+        "RUNMODE": "00:20:00",
+        "STORETYPE": "Memory"
       },
       "publishAllPorts": true,
       "useSSL": true

@@ -10,6 +10,11 @@ using UglyToad.PdfPig;
 using System.Net.Http;
 using System.Net;
 using Microsoft.Extensions.Logging;
+using System.Collections;
+using System.Reflection.Metadata;
+using Tabula.Detectors;
+using Tabula.Extractors;
+using Tabula;
 
 namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 {
@@ -41,27 +46,49 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 }
                 competition.Url = url;
                 competition.Location = "Virtual";
-
+                var competitionGroup = new CompetitionGroup();
+                var competitionRound = new CompetitionRound();
                 var response = await m_httpClient.GetAsync(url);
                 using (var stream = await response.Content.ReadAsStreamAsync())
                 {
-
-
-                    using (var pdf = PdfDocument.Open(stream))
+                    using (var pdf = PdfDocument.Open(stream, new ParsingOptions() { ClipPaths = true }))
                     {
+                        var rows = GetTableRows(pdf);
                         foreach (var page in pdf.GetPages())
                         {
-                            // Either extract based on order in the underlying document with newlines and spaces.
                             var text = ContentOrderTextExtractor.GetText(page);
                             using (var reader = new StringReader(text))
                             {
-                                competition.Name = reader.ReadLine()?.Replace("Results","").TrimEnd();
+                                competition.Name = reader.ReadLine()?.Replace("Results", "").TrimEnd();
+                                // Move to line with headers
+                                var topRow = rows.First().ToArray();
+                                var timeHeader = Array.FindIndex(topRow, t=> t.GetText().ToLower().Contains("time"));
+                                var nameHeader = Array.FindIndex(topRow, t => t.GetText().ToLower().Contains("name"));
+                                var countryHeader = Array.FindIndex(topRow, t => t.GetText().ToLower().Contains("location"));
+                                foreach(var row in rows.Skip(1))
+                                {
+                                    var participant = new ParticipantResult();
+                                    participant.AddTime(row, timeHeader);
+
+                                    participant.AddParticipant(row, nameHeader, countryHeader);
+
+                                    competitionRound.Participants.Add(participant);
+                                }
                             }
                         }
 
                     }
                 }
-                await m_store.Store(competition);
+                competitionRound.SetContestType();
+                competitionGroup.ContestType = competitionRound.ContestType;
+                competitionGroup.Rounds.Add(competitionRound);
+                competition.CompetitionGroups.Add(competitionGroup);
+
+                var stored = await m_store.Store(competition);
+                if (stored)
+                {
+                    m_logger.LogInformation($"Stored competition from pdf {url}");
+                }
             }
             catch (Exception ex)
             {
@@ -70,6 +97,23 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             }
 
         }
+
+        private static IReadOnlyList<IReadOnlyList<Cell>> GetTableRows(PdfDocument pdf)
+        {
+            ObjectExtractor oe = new ObjectExtractor(pdf);
+            PageArea tablePage = oe.Extract(1);
+
+            // detect canditate table zones
+            SimpleNurminenDetectionAlgorithm detector = new SimpleNurminenDetectionAlgorithm();
+            var regions = detector.Detect(tablePage);
+
+            IExtractionAlgorithm ea = new BasicExtractionAlgorithm();
+            List<Table> tables = ea.Extract(tablePage.GetArea(regions[0].BoundingBox)); // take first candidate area
+            var table = tables[0];
+            var rows = table.Rows;
+            return rows;
+        }
+
 
         public bool SupportCompetitionType(CompetitionOwner competitionType)
         {

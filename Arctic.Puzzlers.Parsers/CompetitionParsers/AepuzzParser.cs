@@ -20,34 +20,13 @@ namespace Arctic.Puzzlers.CLI.InputParsing
             m_store = store;
         }
 
-        internal void ResolveContestType(CompetitionRound competitionObject)
-        {
-            if(competitionObject.Participants.All(t=> t.Participants.Count <=1))
-            {
-                competitionObject.ContestType = ContestType.Individual;
-            }
-            else if (competitionObject.Participants.All(t => t.Participants.Count <=2))
-            {
-                competitionObject.ContestType = ContestType.Pair;
-            }
-            else if (competitionObject.Participants.All(t => t.Participants.Count <= 4))
-            {
-                competitionObject.ContestType = ContestType.Team;
-            }
-            else
-            {
-                competitionObject.ContestType = ContestType.Unknown;
-            }
-        }
-
-
         internal void AddResult(CompetitionRound competitor, HtmlNodeCollection values, string baseurl)
         {
             var participantResult = new ParticipantResult();
             var names = values[2].SelectNodes("div/a");
             if(names.Count() > 0) 
             {
-                for(int i =0 ; names.Count > i; i++)
+                for(int i = 0 ; names.Count > i; i++)
                 {
                     var personRelativeUrl = names[i].Attributes["href"];
                     var fullurl = baseurl + "/" +personRelativeUrl.Value;
@@ -88,8 +67,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                 var competition = new Competition();
                 
                 try
-                {
-                    
+                {                    
                     currentUrl = url + $"/clasificacion.php?id={i}";
                     competition.Url = currentUrl;
                     var needToParse = await m_store.NeedToParse(currentUrl);
@@ -200,7 +178,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                 }
                 AddResult(competitionObject, values, baseUrl);
             }
-            ResolveContestType(competitionObject);
+            competitionObject.SetContestType();
             return competitionObject;
         } 
         

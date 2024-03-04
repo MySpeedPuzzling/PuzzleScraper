@@ -4,9 +4,9 @@ namespace Arctic.Puzzlers.Stores
 {
     public static class ConfigurationExtensions
     {
-        private const string FileOutputFolderKey = "ResultOutputFolder";
-        private const string OverrideDataKey = "OverrideData";
-        private const string StoreTypeKey = "StoreType";
+        private const string FileOutputFolderKey = "RESULTOUTPUTFOLDER";
+        private const string OverrideDataKey = "OVERRIDEDATA";
+        private const string StoreTypeKey = "STORETYPE";
 
         public static string GetFileOutputFolder(this IConfiguration configuration)
         {

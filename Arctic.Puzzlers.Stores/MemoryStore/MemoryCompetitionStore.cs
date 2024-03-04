@@ -23,7 +23,7 @@ namespace Arctic.Puzzlers.Stores.MemoryStore
                 m_competitionList.Add(competition);
                 return Task.FromResult(true);
             }
-            else if (!m_competitionList.Any(t => t.Url == t.Url))
+            else if (!m_competitionList.Any(t => t.Url == competition.Url))
             {
                 m_competitionList.Add(competition);
                 Task.FromResult(true);

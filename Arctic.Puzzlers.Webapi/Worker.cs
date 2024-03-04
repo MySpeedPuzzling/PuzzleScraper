@@ -21,13 +21,10 @@ namespace Arctic.Puzzlers.Webapi
 
         private readonly List<Tuple<string, CompetitionOwner>> m_competitionUrls = new List<Tuple<string, CompetitionOwner>>()
         {
-            new Tuple<string, CompetitionOwner>("https://aepuzz.es/usuarios", CompetitionOwner.AePuzz)
+            new Tuple<string, CompetitionOwner>("https://aepuzz.es/usuarios", CompetitionOwner.AePuzz),
+            new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results.html", CompetitionOwner.SpeedPuzzling)
         };
-
-        private readonly List<Tuple<string, CompetitionOwner, BrandName, string>> m_singlecompetitionUrls = new List<Tuple<string, CompetitionOwner, BrandName, string>>()
-        {
-            new Tuple<string, CompetitionOwner,BrandName, string>("https://www.worldjigsawpuzzle.org/wjpc/2019/individual/final", CompetitionOwner.WJPC, BrandName.Ravensburger,  "")
-        };
+      
 
         public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IConfiguration configuration)
         {

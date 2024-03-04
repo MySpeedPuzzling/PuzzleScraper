@@ -2,6 +2,7 @@
 using Arctic.Puzzlers.Stores.MemoryStore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Arctic.Puzzlers.Stores
 {
