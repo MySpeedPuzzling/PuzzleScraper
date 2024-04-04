@@ -12,7 +12,7 @@ namespace Arctic.Puzzlers.Stores
         {
             
             var storeType = configuration.GetStoreType();
-            if (!string.IsNullOrEmpty(storeType) || storeType.ToLower() == "memory")
+            if (storeType?.ToLower() == "memory")
             {
                 services.AddSingleton<IPuzzleStore, MemoryPuzzleStore>();
                 services.AddSingleton<ICompetitionStore, MemoryCompetitionStore>();

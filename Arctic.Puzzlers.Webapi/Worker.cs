@@ -21,10 +21,14 @@ namespace Arctic.Puzzlers.Webapi
 
         private readonly List<Tuple<string, CompetitionOwner>> m_competitionUrls = new List<Tuple<string, CompetitionOwner>>()
         {
-            new Tuple<string, CompetitionOwner>("https://aepuzz.es/usuarios", CompetitionOwner.AePuzz),
-            new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results.html", CompetitionOwner.SpeedPuzzling)
-        };
-      
+            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results.html", CompetitionOwner.SpeedPuzzling),
+            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2023.html", CompetitionOwner.SpeedPuzzling),
+            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2022.html", CompetitionOwner.SpeedPuzzling),
+            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2021.html", CompetitionOwner.SpeedPuzzling),
+            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2020.html", CompetitionOwner.SpeedPuzzling),
+            new Tuple<string, CompetitionOwner>("https://aepuzz.es/usuarios", CompetitionOwner.AePuzz)
+            
+        };      
 
         public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IConfiguration configuration)
         {
@@ -67,19 +71,26 @@ namespace Arctic.Puzzlers.Webapi
                         {
                             _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                         }
-                        var competitionFactory = scope.ServiceProvider.GetRequiredService<CompetitionParserFactory>();
-                        foreach (var competitionUrl in m_competitionUrls)
+                        var typesToRun = m_configuration.GetParseTypes();
+                        if (typesToRun.Any(t => t.ToLower() == "competition"))
                         {
-                            var parser = competitionFactory.GetParser(competitionUrl.Item2);
-                            await parser.Parse(competitionUrl.Item1);
+                            var competitionFactory = scope.ServiceProvider.GetRequiredService<CompetitionParserFactory>();
+                            foreach (var competitionUrl in m_competitionUrls)
+                            {
+                                var parser = competitionFactory.GetParser(competitionUrl.Item2);
+                                await parser.Parse(competitionUrl.Item1);
 
+                            }
                         }
-                        var puzzleFactory = scope.ServiceProvider.GetRequiredService<PuzzleParserFactory>();
-                        foreach (var brandPage in m_brandUrls)
+                        if (typesToRun.Any(t => t.ToLower() == "puzzle"))
                         {
-                            var parser = puzzleFactory.GetParser(brandPage.Item2);
+                            var puzzleFactory = scope.ServiceProvider.GetRequiredService<PuzzleParserFactory>();
+                            foreach (var brandPage in m_brandUrls)
+                            {
+                                var parser = puzzleFactory.GetParser(brandPage.Item2);
 
-                            await parser.Parse(brandPage.Item1);
+                                await parser.Parse(brandPage.Item1);
+                            }
                         }
                     }
                     catch (Exception ex)

@@ -1,20 +1,14 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
 using Arctic.Puzzlers.Stores;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 using UglyToad.PdfPig;
-using System.Net.Http;
-using System.Net;
 using Microsoft.Extensions.Logging;
-using System.Collections;
-using System.Reflection.Metadata;
 using Tabula.Detectors;
 using Tabula.Extractors;
 using Tabula;
+using Arctic.Puzzlers.Objects.Misc;
+using HtmlAgilityPack;
+using Arctic.Puzzlers.Objects.PuzzleObjects;
 
 namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 {
@@ -29,73 +23,186 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             m_httpClient = client;
             m_logger = logger;
         }
-        public Task Parse(string url)
+        public async Task Parse(string url)
         {
-            return Task.FromResult(0);
+            var web = new HtmlWeb();
+            var mainPage = web.Load(url);
+            var results = mainPage.DocumentNode.SelectNodes("//a[contains(@href,'results.pdf')]");
+            foreach (var result in results)
+            {
+                string competitionUrl = string.Empty;
+                try
+                {
+                    var relativurl = result.GetAttributeValue("href", string.Empty);
+                    if (string.IsNullOrEmpty(relativurl))
+                    {
+                        continue;
+                    }
+                    competitionUrl = GetBaseUrl(url) + relativurl;
+                    if (!await m_store.NeedToParse(competitionUrl))
+                    {
+                        continue;
+                    }
+                    var response = await m_httpClient.GetAsync(competitionUrl);
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    {
+                        var competition = new Competition();
+                        competition.Url = competitionUrl;
+                        competition.Location = "Virtual";
+
+                        var competitionGroup = ParsePdf(stream);
+                        competition.CompetitionGroups.Add(competitionGroup);
+                        var stored = await m_store.Store(competition);
+                        if (stored)
+                        {
+                            m_logger.LogInformation($"Stored competition from pdf {url}");
+                        }
+                    }
+                }               
+                catch (Exception ex)
+                {
+                    m_logger.LogInformation(ex, $"Error parsing {competitionUrl}");
+
+                }
+            }
         }
 
-        public async Task ParsePdf(string url)
-        {
-            try
+        public CompetitionGroup ParsePdf(Stream stream)
+        {            
+            var competitionGroup = new CompetitionGroup();
+            var competitionRound = new CompetitionRound();
+
+            using (var pdf = PdfDocument.Open(stream, new ParsingOptions() { ClipPaths = true }))
             {
-                var competition = new Competition();
-                
-                if (!await m_store.NeedToParse(url))
+                var rows = GetTableRows(pdf);
+                foreach (var page in pdf.GetPages())
                 {
-                    return;
-                }
-                competition.Url = url;
-                competition.Location = "Virtual";
-                var competitionGroup = new CompetitionGroup();
-                var competitionRound = new CompetitionRound();
-                var response = await m_httpClient.GetAsync(url);
-                using (var stream = await response.Content.ReadAsStreamAsync())
-                {
-                    using (var pdf = PdfDocument.Open(stream, new ParsingOptions() { ClipPaths = true }))
+                    var text = ContentOrderTextExtractor.GetText(page);
+                    var textLines = text.Split(new string[] { "\r\n", "\r", "\n" },StringSplitOptions.None);
+
+                    var firstLine = textLines.First();
+                    competitionRound.RoundName = firstLine?.Replace("Results", "").TrimEnd();
+                    string puzzleName = textLines.Last();
+                    string puzzleBrand = textLines[textLines.Length - 2];
+                    puzzleBrand = WashPuzzleBrandName(puzzleBrand);
+                    BrandName puzzleBrandEnum = puzzleBrand.GetEnumFromString<BrandName>();
+
+                    var topRow = rows.First().ToArray();
+                    var timeHeader = Array.FindIndex(topRow, t => t.GetText().ToLower().Contains("time"));
+                    var nameHeader = Array.FindIndex(topRow, t => t.GetText().ToLower().Contains("name"));
+                    var countryHeader = Array.FindIndex(topRow, t => t.GetText().ToLower().Contains("location"));
+                    switch (text.ToLower())
                     {
-                        var rows = GetTableRows(pdf);
-                        foreach (var page in pdf.GetPages())
-                        {
-                            var text = ContentOrderTextExtractor.GetText(page);
-                            using (var reader = new StringReader(text))
-                            {
-                                competition.Name = reader.ReadLine()?.Replace("Results", "").TrimEnd();
-                                // Move to line with headers
-                                var topRow = rows.First().ToArray();
-                                var timeHeader = Array.FindIndex(topRow, t=> t.GetText().ToLower().Contains("time"));
-                                var nameHeader = Array.FindIndex(topRow, t => t.GetText().ToLower().Contains("name"));
-                                var countryHeader = Array.FindIndex(topRow, t => t.GetText().ToLower().Contains("location"));
-                                foreach(var row in rows.Skip(1))
-                                {
-                                    var participant = new ParticipantResult();
-                                    participant.AddTime(row, timeHeader);
+                        case string a when a.Contains("team"):
+                            competitionRound.ContestType = ContestType.Team;
+                            competitionGroup.ContestType = ContestType.Team;
+                            AddResultForTeam(competitionRound, rows, timeHeader, nameHeader, countryHeader);
+                            break;
+                        case string b when b.Contains("pair"):
+                            competitionRound.ContestType = ContestType.Pair;
+                            competitionGroup.ContestType = ContestType.Pair;
+                            AddResultForPairs(competitionRound, rows, timeHeader, nameHeader, countryHeader);
+                            break;
+                        case string c when c.Contains("solo"):
+                        case string d when d.Contains("individual"):
+                            competitionRound.ContestType = ContestType.Individual;
+                            competitionGroup.ContestType = ContestType.Individual;
+                            AddResultForIndividual(competitionRound, rows, timeHeader, nameHeader, countryHeader);
+                            break;
+                        default:
+                            competitionRound.ContestType = ContestType.Individual;
+                            competitionGroup.ContestType = ContestType.Individual;
+                            AddResultForIndividual(competitionRound, rows, timeHeader, nameHeader, countryHeader);
+                            break;
+                    }
 
-                                    participant.AddParticipant(row, nameHeader, countryHeader);
+                    competitionGroup.Rounds.ForEach(t => 
+                    { 
+                        t.Participants.ForEach(k => k.Results.ForEach(m => { m.Puzzle.BrandName = puzzleBrandEnum; m.Puzzle.Name = puzzleName; }));
+                        t.Puzzles.Add(new Puzzle { BrandName = puzzleBrandEnum, Name = puzzleName });
+                    });
 
-                                    competitionRound.Participants.Add(participant);
-                                }
-                            }
-                        }
+                    
+                }
+            }
 
+            competitionGroup.Rounds.Add(competitionRound);
+
+            return competitionGroup;             
+           
+        }
+
+        private string WashPuzzleBrandName(string puzzleBrand)
+        {
+            var puzzleBrandParts = puzzleBrand.Split(' ');
+            var returnValue = string.Empty;
+            foreach(var  part in puzzleBrandParts)
+            {
+                if (char.IsDigit(part[0]))
+                {
+                    break;
+                }
+                returnValue += part;
+            }
+
+            return returnValue;
+        }
+
+        private static void AddResultForTeam(CompetitionRound competitionRound, IReadOnlyList<IReadOnlyList<Cell>> rows, int timeHeader, int nameHeader, int countryHeader)
+        {
+            var participant = new ParticipantResult();
+            var country = Countries.UNK;
+            int i = 0;
+            foreach (var row in rows.Skip(1))
+            {
+                i++;
+                if (i == 3)
+                {
+                    participant.AddTime(row, timeHeader);
+                    var countryString = row[countryHeader].GetText();
+                    country = countryString.GetEnumFromString<Countries>();
+                    if (country == Countries.UNK)
+                    {
+                        country = Countries.USA;
                     }
                 }
-                competitionRound.SetContestType();
-                competitionGroup.ContestType = competitionRound.ContestType;
-                competitionGroup.Rounds.Add(competitionRound);
-                competition.CompetitionGroups.Add(competitionGroup);
-
-                var stored = await m_store.Store(competition);
-                if (stored)
+                if (i != 3)
                 {
-                    m_logger.LogInformation($"Stored competition from pdf {url}");
+                    participant.AddParticipant(row, nameHeader, countryHeader);
                 }
+                if(i ==5)
+                {
+                    participant = new ParticipantResult();
+                    country = Countries.UNK;
+                    i = 0;
+                    competitionRound.Participants.Add(participant);
+                }
+                
             }
-            catch (Exception ex)
+        }
+        private static void AddResultForPairs(CompetitionRound competitionRound, IReadOnlyList<IReadOnlyList<Cell>> rows, int timeHeader, int nameHeader, int countryHeader)
+        {
+            foreach (var row in rows.Skip(1))
             {
-                m_logger.LogInformation(ex, $"Error parsing {url}");
+                var participant = new ParticipantResult();
+                participant.AddTime(row, timeHeader);
 
+                participant.AddPairParticipants(row, nameHeader, countryHeader);
+
+                competitionRound.Participants.Add(participant);
             }
+        }
+        private static void AddResultForIndividual(CompetitionRound competitionRound, IReadOnlyList<IReadOnlyList<Cell>> rows, int timeHeader, int nameHeader, int countryHeader)
+        {
+            foreach (var row in rows.Skip(1))
+            {
+                var participant = new ParticipantResult();
+                participant.AddTime(row, timeHeader);
 
+                participant.AddParticipant(row, nameHeader, countryHeader);
+
+                competitionRound.Participants.Add(participant);
+            }
         }
 
         private static IReadOnlyList<IReadOnlyList<Cell>> GetTableRows(PdfDocument pdf)
@@ -114,6 +221,12 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             return rows;
         }
 
+        public static string GetBaseUrl(string url)
+        {
+            var uri = new Uri(url);
+            var baseUri = uri.GetLeftPart(System.UriPartial.Authority);
+            return baseUri;
+        }
 
         public bool SupportCompetitionType(CompetitionOwner competitionType)
         {

@@ -24,7 +24,30 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             {
                 country = Countries.USA;
             }
-            participant.Participants.Add(new Participant { FullName = fullname, Country = country });
+            participant.Participants.Add(new Participant { FullName = fullname.FixName(), Country = country });
+        }
+
+        public static void AddPairParticipants(this ParticipantResult participant, IReadOnlyList<Cell> row, int nameHeader, int countryHeader)
+        {
+            var fullnames = row[nameHeader].GetText().Split("\r");
+            var countryString = row[countryHeader].GetText();
+            var country = countryString.GetEnumFromString<Countries>();
+            if (country == Countries.UNK)
+            {
+                country = Countries.USA;
+            }
+            foreach (var fullname in fullnames)
+            {
+                participant.Participants.Add(new Participant { FullName = fullname.FixName(), Country = country });
+            }
+        }
+
+        public static string FixName(this string name)
+        {
+            var nameParts = name.Split(",");
+            var lastName = nameParts.First().Trim();
+            var firstname = nameParts.Last().Trim();
+            return firstname + " " + lastName;
         }
 
         public static string[] ReadAndSplit(this StringReader reader, char split)
@@ -36,5 +59,6 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             }
             return line.Split(split);
         }
+        
     }
 }

@@ -7,7 +7,7 @@ namespace Arctic.Puzzlers.Stores
         private const string FileOutputFolderKey = "RESULTOUTPUTFOLDER";
         private const string OverrideDataKey = "OVERRIDEDATA";
         private const string StoreTypeKey = "STORETYPE";
-
+        
         public static string GetFileOutputFolder(this IConfiguration configuration)
         {
             return configuration[FileOutputFolderKey] ?? string.Empty;
@@ -17,6 +17,7 @@ namespace Arctic.Puzzlers.Stores
         {
             return configuration[StoreTypeKey] ?? string.Empty;
         }
+       
 
         public static bool OverrideData(this IConfiguration configuration)
         {

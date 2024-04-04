@@ -8,7 +8,7 @@
         }
         public long NumberOfPieces { get; set; }
         public string EAN {  get; set; } 
-        public string Name { get; set; }
+        
         public string Description { get; set; }
         public List<string> ImageUrls { get; set; }
 

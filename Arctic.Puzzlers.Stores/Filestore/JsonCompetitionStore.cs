@@ -9,7 +9,7 @@ using System.Text.Unicode;
 
 namespace Arctic.Puzzlers.Stores.Filestore
 {
-    public class JsonCompetitionStore :  ICompetitionStore
+    public class JsonCompetitionStore :  ICompetitionStore, IDisposable
     {
         private readonly IConfiguration m_configuration;
         private const string JsonFileName = "competitiondata.json";
