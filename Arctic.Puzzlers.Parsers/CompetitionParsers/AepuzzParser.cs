@@ -132,7 +132,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                 }
             }
         }
-        public CompetitionRound ParseWebPage(HtmlDocument doc, string currentUrl, string baseUrl)
+        public CompetitionRound? ParseWebPage(HtmlDocument doc, string currentUrl, string baseUrl)
         {
             var competitionObject = new CompetitionRound();
             competitionObject.Url = currentUrl;

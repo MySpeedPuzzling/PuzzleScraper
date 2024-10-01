@@ -17,6 +17,6 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
         }
         public double SecondsUsed { get; set; }
         public long FinishedPieces { get; set; }
-        public Puzzle Puzzle { get; set; }        
+        public Puzzle Puzzle { get; set; } = new Puzzle();       
     }
 }

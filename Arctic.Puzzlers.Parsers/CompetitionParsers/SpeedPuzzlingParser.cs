@@ -28,6 +28,11 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             var web = new HtmlWeb();
             var mainPage = web.Load(url);
             var results = mainPage.DocumentNode.SelectNodes("//a[contains(@href,'results.pdf')]");
+            if (!results.Any())
+            {
+                m_logger.LogInformation($"Could not parse any data from {url}");
+                return;
+            }
             foreach (var result in results)
             {
                 string competitionUrl = string.Empty;
@@ -81,7 +86,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                     var textLines = text.Split(new string[] { "\r\n", "\r", "\n" },StringSplitOptions.None);
 
                     var firstLine = textLines.First();
-                    competitionRound.RoundName = firstLine?.Replace("Results", "").TrimEnd();
+                    competitionRound.RoundName = firstLine.Replace("Results", "").TrimEnd();
                     string puzzleName = textLines.Last();
                     string puzzleBrand = textLines[textLines.Length - 2];
                     puzzleBrand = WashPuzzleBrandName(puzzleBrand);
@@ -94,13 +99,13 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                     switch (text.ToLower())
                     {
                         case string a when a.Contains("team"):
-                            competitionRound.ContestType = ContestType.Team;
-                            competitionGroup.ContestType = ContestType.Team;
+                            competitionRound.ContestType = ContestType.Teams;
+                            competitionGroup.ContestType = ContestType.Teams;
                             AddResultForTeam(competitionRound, rows, timeHeader, nameHeader, countryHeader);
                             break;
                         case string b when b.Contains("pair"):
-                            competitionRound.ContestType = ContestType.Pair;
-                            competitionGroup.ContestType = ContestType.Pair;
+                            competitionRound.ContestType = ContestType.Pairs;
+                            competitionGroup.ContestType = ContestType.Pairs;
                             AddResultForPairs(competitionRound, rows, timeHeader, nameHeader, countryHeader);
                             break;
                         case string c when c.Contains("solo"):
@@ -207,17 +212,20 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 
         private static IReadOnlyList<IReadOnlyList<Cell>> GetTableRows(PdfDocument pdf)
         {
+            IReadOnlyList<IReadOnlyList<Cell>> rows = new List<IReadOnlyList<Cell>>();
             ObjectExtractor oe = new ObjectExtractor(pdf);
-            PageArea tablePage = oe.Extract(1);
+            for (int i = 1; i <= pdf.NumberOfPages; i++)
+            {
+                PageArea tablePage = oe.Extract(1);
+                // detect canditate table zones
+                SimpleNurminenDetectionAlgorithm detector = new SimpleNurminenDetectionAlgorithm();
+                var regions = detector.Detect(tablePage);
 
-            // detect canditate table zones
-            SimpleNurminenDetectionAlgorithm detector = new SimpleNurminenDetectionAlgorithm();
-            var regions = detector.Detect(tablePage);
-
-            IExtractionAlgorithm ea = new BasicExtractionAlgorithm();
-            List<Table> tables = ea.Extract(tablePage.GetArea(regions[0].BoundingBox)); // take first candidate area
-            var table = tables[0];
-            var rows = table.Rows;
+                IExtractionAlgorithm ea = new BasicExtractionAlgorithm();
+                List<Table> tables = ea.Extract(tablePage.GetArea(regions[0].BoundingBox)); // take first candidate area
+                var table = tables[0];
+                rows = table.Rows;
+            }
             return rows;
         }
 

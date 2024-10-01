@@ -1,5 +1,4 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
-using Arctic.Puzzlers.Objects.PuzzleObjects;
 
 namespace Arctic.Puzzlers.Stores
 {
@@ -8,5 +7,7 @@ namespace Arctic.Puzzlers.Stores
         public Task<bool> Store(Competition competition);
         public Task<bool> NeedToParse(string url);
         public Task<List<Competition>> GetAll();
+
+        public Task<List<PlayerCompetitionResult>> GetPlayerCompetitionResultByName(string name);
     }
 }

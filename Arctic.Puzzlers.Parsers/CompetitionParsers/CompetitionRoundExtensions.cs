@@ -17,11 +17,11 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             }
             else if (competitionObject.Participants.All(t => t.Participants.Count <= 2))
             {
-                competitionObject.ContestType = ContestType.Pair;
+                competitionObject.ContestType = ContestType.Pairs;
             }
             else if (competitionObject.Participants.All(t => t.Participants.Count <= 4))
             {
-                competitionObject.ContestType = ContestType.Team;
+                competitionObject.ContestType = ContestType.Teams;
             }
             else
             {

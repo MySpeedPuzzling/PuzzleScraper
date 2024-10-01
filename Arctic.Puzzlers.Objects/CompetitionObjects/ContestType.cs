@@ -3,8 +3,8 @@
     public enum ContestType
     {
         Individual,
-        Pair,
-        Team,
+        Pairs,
+        Teams,
         Unknown
     }
 }

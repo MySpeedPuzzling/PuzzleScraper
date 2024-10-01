@@ -21,13 +21,13 @@ namespace Arctic.Puzzlers.Webapi
 
         private readonly List<Tuple<string, CompetitionOwner>> m_competitionUrls = new List<Tuple<string, CompetitionOwner>>()
         {
-            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results.html", CompetitionOwner.SpeedPuzzling),
-            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2023.html", CompetitionOwner.SpeedPuzzling),
-            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2022.html", CompetitionOwner.SpeedPuzzling),
-            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2021.html", CompetitionOwner.SpeedPuzzling),
-            //new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2020.html", CompetitionOwner.SpeedPuzzling),
+            new Tuple<string, CompetitionOwner>("https://www.worldjigsawpuzzle.org/", CompetitionOwner.WJPC),
+            new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results.html", CompetitionOwner.SpeedPuzzling),
+            new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2023.html", CompetitionOwner.SpeedPuzzling),
+            new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2022.html", CompetitionOwner.SpeedPuzzling),
+            new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2021.html", CompetitionOwner.SpeedPuzzling),
+            new Tuple<string, CompetitionOwner>("https://www.speedpuzzling.com/results-2020.html", CompetitionOwner.SpeedPuzzling),
             new Tuple<string, CompetitionOwner>("https://aepuzz.es/usuarios", CompetitionOwner.AePuzz)
-            
         };      
 
         public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IConfiguration configuration)
@@ -77,8 +77,15 @@ namespace Arctic.Puzzlers.Webapi
                             var competitionFactory = scope.ServiceProvider.GetRequiredService<CompetitionParserFactory>();
                             foreach (var competitionUrl in m_competitionUrls)
                             {
-                                var parser = competitionFactory.GetParser(competitionUrl.Item2);
-                                await parser.Parse(competitionUrl.Item1);
+                                try
+                                {
+                                    var parser = competitionFactory.GetParser(competitionUrl.Item2);
+                                    await parser.Parse(competitionUrl.Item1);
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError(ex, $"Something whent wrong when parsing {competitionUrl}");
+                                }
 
                             }
                         }

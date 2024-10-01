@@ -40,5 +40,27 @@ namespace Arctic.Puzzlers.Stores.MemoryStore
         {
             return Task.FromResult(m_competitionList);
         }
+
+        public Task<List<PlayerCompetitionResult>> GetPlayerCompetitionResultByName(string name)
+        {
+            List<PlayerCompetitionResult> results = new List<PlayerCompetitionResult>();
+            foreach (var competition in m_competitionList)
+            {
+                var competitionName = competition.Name;
+                foreach (var group in competition.CompetitionGroups)
+                {
+                    var contesttype = group.ContestType.ToString();
+                    foreach (var round in group.Rounds)
+                    {
+                        var roundname = round.RoundName;
+                        foreach (var participantResult in round.Participants.Where(t => t.Participants.Any(p => p.FullName.ToLower() == name.ToLower())))
+                        {
+                            results.Add(new PlayerCompetitionResult { CompetitionName = competitionName + " " + contesttype + " " + roundname, Result = participantResult });
+                        }
+                    }
+                }
+            }
+            return Task.FromResult(results);
+        }
     }
 }

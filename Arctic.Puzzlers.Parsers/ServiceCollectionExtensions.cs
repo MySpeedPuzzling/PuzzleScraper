@@ -14,6 +14,7 @@ namespace Arctic.Puzzlers.Parsers
             services.AddScoped<IPuzzlePageParser, SchmidtParser>();
             services.AddScoped<CompetitionParserFactory>();
             services.AddScoped<ICompetitionParser, AepuzzParser>();
+            services.AddScoped<ICompetitionParser, WorldJigsawPuzzleOrgParser>();
             services.AddHttpClient<ICompetitionParser, SpeedPuzzlingParser>();
             return services;
         }

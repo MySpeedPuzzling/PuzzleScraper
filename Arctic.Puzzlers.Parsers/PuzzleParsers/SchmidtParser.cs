@@ -49,7 +49,7 @@ namespace Arctic.Puzzlers.Parsers.PuzzleParsers
             return puzzleUrl;
         }
 
-        private async Task<PuzzleExtended> ParseSpecificPage(string url)
+        private async Task<PuzzleExtended?> ParseSpecificPage(string url)
         {
             var web = new HtmlWeb();
             var doc = web.Load(url);

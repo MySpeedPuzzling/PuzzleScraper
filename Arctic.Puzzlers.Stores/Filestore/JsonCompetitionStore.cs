@@ -1,7 +1,6 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
-using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Microsoft.Extensions.Configuration;
-using System;
+using System.Collections.Generic;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -60,7 +59,6 @@ namespace Arctic.Puzzlers.Stores.Filestore
             }
         }
 
-
         public Task<bool> Store(Competition competition)
         {
             if (m_configuration.OverrideData())
@@ -85,6 +83,28 @@ namespace Arctic.Puzzlers.Stores.Filestore
         public Task<List<Competition>> GetAll()
         {
             return Task.FromResult(m_competitionList);
+        }
+
+        public Task<List<PlayerCompetitionResult>> GetPlayerCompetitionResultByName(string name)
+        {
+            List<PlayerCompetitionResult> results = new List<PlayerCompetitionResult>();
+            foreach (var competition in m_competitionList)
+            {
+                var competitionName = competition.Name;
+                foreach(var group in competition.CompetitionGroups)
+                {
+                    var contesttype = group.ContestType.ToString();
+                    foreach(var round in group.Rounds)
+                    {
+                        var roundname = round.RoundName;
+                        foreach (var participantResult in round.Participants.Where(t => t.Participants.Any(p => p.FullName.ToLower() == name.ToLower())))
+                        {
+                            results.Add(new PlayerCompetitionResult { CompetitionName = competitionName + " " + contesttype + " " + roundname, Result = participantResult });
+                        }
+                    }
+                }
+            }
+            return Task.FromResult(results);
         }
     }
 }
