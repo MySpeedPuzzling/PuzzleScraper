@@ -6,7 +6,7 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
     {
         public Player()
         {
-            Id= new Guid();
+            Id= Guid.NewGuid();
         }
         public Player (Guid id)
         {
