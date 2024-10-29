@@ -50,7 +50,13 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                     {
                         continue;
                     }
-                    var response = await m_httpClient.GetAsync(competitionUrl);
+                    var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, competitionUrl);
+                    httpRequestMessage.Headers.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue(@"ArcticPuzzler","1.0.0.0"));
+                    var response = await m_httpClient.SendAsync(httpRequestMessage);
+                    if (!response.IsSuccessStatusCode)
+                    {                        
+                        m_logger.LogInformation($"Could not get pdf for {competitionUrl} with response code {response.StatusCode}");
+                    }
                     using (var stream = await response.Content.ReadAsStreamAsync())
                     {
                         var competition = new Competition();
@@ -69,7 +75,6 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 catch (Exception ex)
                 {
                     m_logger.LogInformation(ex, $"Error parsing {competitionUrl}");
-
                 }
             }
         }
@@ -89,10 +94,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 
                     var firstLine = textLines.First();
                     competitionRound.RoundName = firstLine.Replace("Results", "").TrimEnd();
-                    string puzzleName = textLines.Last();
-                    string puzzleBrand = textLines[textLines.Length - 2];
-                    puzzleBrand = WashPuzzleBrandName(puzzleBrand);
-                    BrandName puzzleBrandEnum = puzzleBrand.GetEnumFromString<BrandName>();
+                    
 
                     var topRow = rows.First().ToArray();
                     var timeHeader = Array.FindIndex(topRow, t => t.GetText().ToLower().Contains("time"));
@@ -122,17 +124,24 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                             await AddResultForIndividual(competitionRound, rows, timeHeader, nameHeader, countryHeader);
                             break;
                     }
-
-                    competitionGroup.Rounds.ForEach(t => 
-                    { 
-                        t.Participants.ForEach(k => k.Results.ForEach(m => { m.Puzzle.BrandName = puzzleBrandEnum; m.Puzzle.Name = puzzleName; }));
-                        t.Puzzles.Add(new Puzzle { BrandName = puzzleBrandEnum, Name = puzzleName });
-                    });
-
-                    
+                    try
+                    {
+                        string puzzleName = textLines.Last();
+                        string puzzleBrand = textLines[textLines.Length - 2];
+                        puzzleBrand = WashPuzzleBrandName(puzzleBrand);
+                        BrandName puzzleBrandEnum = puzzleBrand.GetEnumFromString<BrandName>();
+                        competitionGroup.Rounds.ForEach(t =>
+                        {
+                            t.Participants.ForEach(k => k.Results.ForEach(m => { m.Puzzle.BrandName = puzzleBrandEnum; m.Puzzle.Name = puzzleName; }));
+                            t.Puzzles.Add(new Puzzle { BrandName = puzzleBrandEnum, Name = puzzleName });
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        m_logger.LogInformation(ex, $"Error parsing puzzle brandname/puzzle name ");
+                    }                   
                 }
             }
-
             competitionGroup.Rounds.Add(competitionRound);
 
             return competitionGroup;             
