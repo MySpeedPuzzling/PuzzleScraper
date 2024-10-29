@@ -2,7 +2,6 @@
 using Arctic.Puzzlers.Stores.MemoryStore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Arctic.Puzzlers.Stores
 {
@@ -16,11 +15,13 @@ namespace Arctic.Puzzlers.Stores
             {
                 services.AddSingleton<IPuzzleStore, MemoryPuzzleStore>();
                 services.AddSingleton<ICompetitionStore, MemoryCompetitionStore>();
+                services.AddSingleton<IPlayerStore, MemoryPlayerStore>();
             }
             else
             {
                 services.AddScoped<IPuzzleStore, JsonPuzzleStore>();
                 services.AddScoped<ICompetitionStore, JsonCompetitionStore>();
+                services.AddScoped<IPlayerStore, JsonPlayerStore>();
             }
             return services;
         }

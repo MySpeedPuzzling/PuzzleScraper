@@ -8,6 +8,7 @@ namespace Arctic.Puzzlers.Stores
         public Task<bool> NeedToParse(string url);
         public Task<List<Competition>> GetAll();
 
+        public Task<List<Competition>> GetByName(string name);
         public Task<List<PlayerCompetitionResult>> GetPlayerCompetitionResultByName(string name);
     }
 }

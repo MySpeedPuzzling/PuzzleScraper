@@ -1,13 +1,11 @@
-﻿using Arctic.Puzzlers.CLI.InputParsing;
-using Arctic.Puzzlers.Objects.CompetitionObjects;
-using Arctic.Puzzlers.Objects.Misc;
+﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
 using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Arctic.Puzzlers.Stores;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 {
@@ -15,10 +13,12 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
     {
         private readonly ILogger<WorldJigsawPuzzleOrgParser> m_logger;
         private readonly ICompetitionStore m_store;
-        public WorldJigsawPuzzleOrgParser(ILogger<WorldJigsawPuzzleOrgParser> logger, ICompetitionStore store)
+        private readonly IPlayerStore m_playerStore;
+        public WorldJigsawPuzzleOrgParser(ILogger<WorldJigsawPuzzleOrgParser> logger, ICompetitionStore store, IPlayerStore playerStore)
         {
             m_logger = logger;
             m_store = store;
+            m_playerStore = playerStore;
         }
         public async Task Parse(string baseurl)
         {
@@ -84,10 +84,13 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             }
         }
 
-        internal void AddResult(CompetitionRound competitionRound, HtmlNodeCollection values)
+        internal async Task AddResult(CompetitionRound competitionRound, HtmlNodeCollection values, int namefield, int timefield)
         {
             var participantResult = new ParticipantResult();
-            var namesfield = values[3].SelectNodes("div");
+            HtmlNodeCollection namesfield;
+            namesfield = values[namefield].SelectNodes("div");
+         
+            
             if(namesfield.Count() < 2 )
             {
                 return;
@@ -103,7 +106,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 {
                     for (int i = 0; names.Count() > i; i++)
                     {
-                        participantResult.Participants.Add(new Participant { FullName = names[i]});
+                        await AddPlayer(participantResult, names[i]);
                     }
                 }
             }
@@ -114,22 +117,14 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 {
                     for (int i = 0; names.Count() > i; i++)
                     {
-                        participantResult.Participants.Add(new Participant { FullName = names[i]});
+                        await AddPlayer(participantResult, names[i]);
                     }
                 }
             }
             string result = string.Empty;
             bool qualified = false;
-            if (values.Count() == 10)
-            {
-                result = values[7].InnerText;
-                qualified= values[7].SelectSingleNode("//i[contains(@class,'text-success')]") != null;
-            }
-            else
-            {
-                result = values[6].InnerText;
-                qualified = values[6].SelectSingleNode("//i[contains(@class,'text-success')]") != null;
-            }
+            result = values[timefield].InnerText;
+            qualified= values[timefield].SelectSingleNode("//i[contains(@class,'text-success')]") != null;         
             
             
             var singlePuzzleResult = new Result();
@@ -150,6 +145,24 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             participantResult.Results.Add(singlePuzzleResult);
 
             competitionRound.Participants.Add(participantResult);
+        }
+
+        private async Task AddPlayer(ParticipantResult participantResult, string name)
+        {
+            var players = await m_playerStore.FindPlayerByName(name);
+            Player? player = null;
+            if (players != null && players.Count() > 0)
+            {
+                player = players.First();
+            }
+            if (player == null)
+            {
+                player = new Player { FullName = name};
+                await m_playerStore.Store(player);
+            }
+
+            participantResult.Participants.Add(new Participant { FullName = player.FullName, PlayerId = player.Id });
+
         }
 
         private async Task<CompetitionGroup> AddRound(string baseUrl, IEnumerable<HtmlNode> individualRounds, ContestType contestType)
@@ -185,15 +198,32 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                         competitionRound.Location = placeAndTimeList[1];
                     }
                 }
-
+                int namefield = 3;
+                int timefield = 7;
                 foreach (HtmlNode tableLine in doc.DocumentNode.SelectNodes("//tr"))
                 {
+                    var fields = tableLine.SelectNodes("th");
+                    if(fields != null && fields.Count()> 0)
+                    {
+                        for(int i =0; i < fields.Count();i++)
+                        {
+                            if (fields[i].InnerText.Equals("name",StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                namefield = i;
+                            }
+                            if (fields[i].InnerText.Equals("time", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                timefield = i;
+                            }
+                        }
+                    }
                     var values = tableLine.SelectNodes("td");
+
                     if (values == null || values.Count() == 0)
                     {
                         continue;
                     }
-                    AddResult(competitionRound, values);
+                    await AddResult(competitionRound, values, namefield, timefield);
                 }
                 competitionRound.ContestType = contestType;
                 competitionGroup.Rounds.Add(competitionRound);

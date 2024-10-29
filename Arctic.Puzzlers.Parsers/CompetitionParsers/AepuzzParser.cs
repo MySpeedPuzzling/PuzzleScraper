@@ -4,7 +4,9 @@ using Arctic.Puzzlers.Parsers.CompetitionParsers;
 using Arctic.Puzzlers.Stores;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.Metrics;
 using System.Globalization;
+using System.Numerics;
 using System.Text.RegularExpressions;
 
 namespace Arctic.Puzzlers.CLI.InputParsing
@@ -13,14 +15,16 @@ namespace Arctic.Puzzlers.CLI.InputParsing
     {
         private readonly ILogger<AepuzzParser> m_logger;
         private readonly ICompetitionStore m_store;
+        private readonly IPlayerStore m_playerStore;
 
-        public AepuzzParser(ILogger<AepuzzParser> logger, ICompetitionStore store) 
+        public AepuzzParser(ILogger<AepuzzParser> logger, ICompetitionStore store, IPlayerStore playerstore) 
         {
             m_logger = logger;
             m_store = store;
+            m_playerStore = playerstore;
         }
 
-        internal void AddResult(CompetitionRound competitor, HtmlNodeCollection values, string baseurl)
+        internal async Task AddResult(CompetitionRound competitor, HtmlNodeCollection values, string baseurl)
         {
             var participantResult = new ParticipantResult();
             var names = values[2].SelectNodes("div/a");
@@ -32,7 +36,20 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                     var fullurl = baseurl + "/" +personRelativeUrl.Value;
                     var identifier = Regex.Match(personRelativeUrl.Value, @"\d+").Value;
                     var parsedIdentifier = new ParsedIdentifier { UserOwner = CompetitionOwner.AePuzz, Identifier = identifier, OriginalUrl = fullurl };
-                    participantResult.Participants.Add(new Participant { FullName= names[i].InnerText, Country = Objects.Misc.Countries.ESP , ParsedIdentifier = parsedIdentifier });                
+                    var name = names[i].InnerText;
+                    var players = await m_playerStore.FindPlayerByName(name);
+                    Player? player = null;
+                    if(players != null && players.Count() > 0)
+                    {
+                        player = players.First();
+                    }
+                    if (player == null)
+                    {
+                        player = new Player { FullName = name, Country = Objects.Misc.Countries.ESP, ParsedIdentifier = parsedIdentifier };
+                        await m_playerStore.Store(player);
+                    }
+
+                    participantResult.Participants.Add(new Participant { FullName = player.FullName, PlayerId = player.Id });                
                 }
             }
             string result;
@@ -79,7 +96,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                     var mainPage = web.Load(currentUrl);
                     var htmlNodes = mainPage.DocumentNode.SelectNodes("//nav[@aria-label='Secondary navigation']/a");
                     
-                    var competitionSingleRound = ParseWebPage(mainPage, currentUrl, url);                       
+                    var competitionSingleRound = await ParseWebPage(mainPage, currentUrl, url);                       
                     if (competitionSingleRound == null)
                     {
                         continue;
@@ -110,7 +127,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                         var doc = web.Load(currentUrl);
 
 
-                        var competitionObject = ParseWebPage(doc, currentUrl, url);
+                        var competitionObject = await ParseWebPage(doc, currentUrl, url);
                         if (competitionObject == null)
                         {
                             continue;
@@ -132,7 +149,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                 }
             }
         }
-        public CompetitionRound? ParseWebPage(HtmlDocument doc, string currentUrl, string baseUrl)
+        public async Task<CompetitionRound?> ParseWebPage(HtmlDocument doc, string currentUrl, string baseUrl)
         {
             var competitionObject = new CompetitionRound();
             competitionObject.Url = currentUrl;
@@ -176,7 +193,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                 {
                     continue;
                 }
-                AddResult(competitionObject, values, baseUrl);
+                await AddResult(competitionObject, values, baseUrl);
             }
             competitionObject.SetContestType();
             return competitionObject;

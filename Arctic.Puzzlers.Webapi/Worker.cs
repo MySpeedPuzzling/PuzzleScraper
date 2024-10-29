@@ -80,7 +80,10 @@ namespace Arctic.Puzzlers.Webapi
                                 try
                                 {
                                     var parser = competitionFactory.GetParser(competitionUrl.Item2);
-                                    await parser.Parse(competitionUrl.Item1);
+                                    if (parser != null)
+                                    {
+                                        await parser.Parse(competitionUrl.Item1);
+                                    }
                                 }
                                 catch (Exception ex)
                                 {

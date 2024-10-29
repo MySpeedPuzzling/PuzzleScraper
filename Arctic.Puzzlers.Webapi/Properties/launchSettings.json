@@ -36,9 +36,10 @@
         "ASPNETCORE_HTTPS_PORTS": "8081",
         "ASPNETCORE_HTTP_PORTS": "8080",
         "RUNMODE": "48:00:00",
-        "STORETYPE": "json",
+        "STORETYPE": "memory",
         "RESULTOUTPUTFOLDER": "/ContainerFolder",
-        "PARSETYPES": "Competition"
+        "PARSETYPES": "Competition",
+        "BASEURL": "https://localhost:32772/"
       },
       "publishAllPorts": true,
       "useSSL": true

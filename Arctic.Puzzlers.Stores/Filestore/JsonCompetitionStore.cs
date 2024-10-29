@@ -1,6 +1,6 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
 using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -11,6 +11,7 @@ namespace Arctic.Puzzlers.Stores.Filestore
     public class JsonCompetitionStore :  ICompetitionStore, IDisposable
     {
         private readonly IConfiguration m_configuration;
+        private readonly ILogger<JsonCompetitionStore> m_logger;
         private const string JsonFileName = "competitiondata.json";
         private List<Competition> m_competitionList;
         private JsonSerializerOptions m_serializeOptions = new JsonSerializerOptions
@@ -18,13 +19,14 @@ namespace Arctic.Puzzlers.Stores.Filestore
             PropertyNameCaseInsensitive = true,
             WriteIndented = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
-
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
         };
-        public JsonCompetitionStore(IConfiguration config) 
+
+        public JsonCompetitionStore(IConfiguration config, ILogger<JsonCompetitionStore> logger) 
         {
             m_competitionList = new List<Competition>();
             m_configuration = config;
+            m_logger = logger;
             Init();
            
         }      
@@ -33,6 +35,7 @@ namespace Arctic.Puzzlers.Stores.Filestore
         {
             var folder = m_configuration.GetFileOutputFolder();
             var fileName = Path.Combine(folder, JsonFileName);
+            m_logger.LogInformation($"Trying to load competitions from json file {fileName}");
             if (File.Exists(fileName))
             {
                 
@@ -104,6 +107,12 @@ namespace Arctic.Puzzlers.Stores.Filestore
                     }
                 }
             }
+            return Task.FromResult(results);
+        }
+
+        public Task<List<Competition>> GetByName(string name)
+        {
+            var results = m_competitionList.Where(t=> t.Name != null && t.Name.StartsWith(name, StringComparison.InvariantCultureIgnoreCase)).ToList();
             return Task.FromResult(results);
         }
     }

@@ -40,11 +40,11 @@ namespace Arctic.Puzzlers.Objects.Misc
             {
                 if (Attribute.GetCustomAttribute(field, typeof(DisplayAttribute)) is DisplayAttribute attribute)
                 {
-                    if (attribute.ShortName.ToLower() == name.ToLower())
+                    if (attribute.ShortName != null && attribute.ShortName.Equals(name, StringComparison.CurrentCultureIgnoreCase))
                     {
                         return (T)field.GetValue(null);
                     }
-                    if(attribute.Name.ToLower() == name.ToLower())
+                    if(attribute.Name != null && attribute.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase))
                     {
                         return (T)field.GetValue(null);
                     }

@@ -15,8 +15,10 @@ namespace Arctic.Puzzlers.Objects.Misc
         public override void Write(
             Utf8JsonWriter writer,
             Countries country,
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             JsonSerializerOptions options) =>
                 writer.WriteStringValue(country.GetAttributeOfType<DisplayAttribute>().ShortName);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
 
 
 

@@ -17,11 +17,13 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
         private readonly ICompetitionStore m_store;
         private readonly HttpClient m_httpClient;
         private readonly ILogger<SpeedPuzzlingParser> m_logger;
-        public SpeedPuzzlingParser(ICompetitionStore store, HttpClient client, ILogger<SpeedPuzzlingParser> logger) 
+        private readonly IPlayerStore m_playerStore;
+        public SpeedPuzzlingParser(ICompetitionStore store, HttpClient client, ILogger<SpeedPuzzlingParser> logger, IPlayerStore playerStore) 
         {
             m_store = store;
             m_httpClient = client;
             m_logger = logger;
+            m_playerStore = playerStore;
         }
         public async Task Parse(string url)
         {
@@ -55,7 +57,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                         competition.Url = competitionUrl;
                         competition.Location = "Virtual";
 
-                        var competitionGroup = ParsePdf(stream);
+                        var competitionGroup = await ParsePdf(stream);
                         competition.CompetitionGroups.Add(competitionGroup);
                         var stored = await m_store.Store(competition);
                         if (stored)
@@ -72,7 +74,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             }
         }
 
-        public CompetitionGroup ParsePdf(Stream stream)
+        public async Task<CompetitionGroup> ParsePdf(Stream stream)
         {            
             var competitionGroup = new CompetitionGroup();
             var competitionRound = new CompetitionRound();
@@ -101,23 +103,23 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                         case string a when a.Contains("team"):
                             competitionRound.ContestType = ContestType.Teams;
                             competitionGroup.ContestType = ContestType.Teams;
-                            AddResultForTeam(competitionRound, rows, timeHeader, nameHeader, countryHeader);
+                            await AddResultForTeam(competitionRound, rows, timeHeader, nameHeader, countryHeader);
                             break;
                         case string b when b.Contains("pair"):
                             competitionRound.ContestType = ContestType.Pairs;
                             competitionGroup.ContestType = ContestType.Pairs;
-                            AddResultForPairs(competitionRound, rows, timeHeader, nameHeader, countryHeader);
+                            await AddResultForPairs(competitionRound, rows, timeHeader, nameHeader, countryHeader);
                             break;
                         case string c when c.Contains("solo"):
                         case string d when d.Contains("individual"):
                             competitionRound.ContestType = ContestType.Individual;
                             competitionGroup.ContestType = ContestType.Individual;
-                            AddResultForIndividual(competitionRound, rows, timeHeader, nameHeader, countryHeader);
+                            await AddResultForIndividual(competitionRound, rows, timeHeader, nameHeader, countryHeader);
                             break;
                         default:
                             competitionRound.ContestType = ContestType.Individual;
                             competitionGroup.ContestType = ContestType.Individual;
-                            AddResultForIndividual(competitionRound, rows, timeHeader, nameHeader, countryHeader);
+                            await AddResultForIndividual(competitionRound, rows, timeHeader, nameHeader, countryHeader);
                             break;
                     }
 
@@ -153,7 +155,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             return returnValue;
         }
 
-        private static void AddResultForTeam(CompetitionRound competitionRound, IReadOnlyList<IReadOnlyList<Cell>> rows, int timeHeader, int nameHeader, int countryHeader)
+        private async Task AddResultForTeam(CompetitionRound competitionRound, IReadOnlyList<IReadOnlyList<Cell>> rows, int timeHeader, int nameHeader, int countryHeader)
         {
             var participant = new ParticipantResult();
             var country = Countries.UNK;
@@ -173,7 +175,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 }
                 if (i != 3)
                 {
-                    participant.AddParticipant(row, nameHeader, countryHeader);
+                    await AddParticipant(participant ,row, nameHeader, countryHeader);
                 }
                 if(i ==5)
                 {
@@ -185,26 +187,26 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 
             }
         }
-        private static void AddResultForPairs(CompetitionRound competitionRound, IReadOnlyList<IReadOnlyList<Cell>> rows, int timeHeader, int nameHeader, int countryHeader)
+        private async Task AddResultForPairs(CompetitionRound competitionRound, IReadOnlyList<IReadOnlyList<Cell>> rows, int timeHeader, int nameHeader, int countryHeader)
         {
             foreach (var row in rows.Skip(1))
             {
                 var participant = new ParticipantResult();
                 participant.AddTime(row, timeHeader);
 
-                participant.AddPairParticipants(row, nameHeader, countryHeader);
+                await AddPairParticipants(participant,row, nameHeader, countryHeader);
 
                 competitionRound.Participants.Add(participant);
             }
         }
-        private static void AddResultForIndividual(CompetitionRound competitionRound, IReadOnlyList<IReadOnlyList<Cell>> rows, int timeHeader, int nameHeader, int countryHeader)
+        private async Task AddResultForIndividual(CompetitionRound competitionRound, IReadOnlyList<IReadOnlyList<Cell>> rows, int timeHeader, int nameHeader, int countryHeader)
         {
             foreach (var row in rows.Skip(1))
             {
                 var participant = new ParticipantResult();
                 participant.AddTime(row, timeHeader);
 
-                participant.AddParticipant(row, nameHeader, countryHeader);
+                await AddParticipant(participant,row, nameHeader, countryHeader);
 
                 competitionRound.Participants.Add(participant);
             }
@@ -213,16 +215,15 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
         private static IReadOnlyList<IReadOnlyList<Cell>> GetTableRows(PdfDocument pdf)
         {
             IReadOnlyList<IReadOnlyList<Cell>> rows = new List<IReadOnlyList<Cell>>();
-            ObjectExtractor oe = new ObjectExtractor(pdf);
             for (int i = 1; i <= pdf.NumberOfPages; i++)
             {
-                PageArea tablePage = oe.Extract(1);
+                PageArea tablePage = ObjectExtractor.Extract(pdf,1);
                 // detect canditate table zones
                 SimpleNurminenDetectionAlgorithm detector = new SimpleNurminenDetectionAlgorithm();
                 var regions = detector.Detect(tablePage);
 
                 IExtractionAlgorithm ea = new BasicExtractionAlgorithm();
-                List<Table> tables = ea.Extract(tablePage.GetArea(regions[0].BoundingBox)); // take first candidate area
+                var tables = ea.Extract(tablePage.GetArea(regions[0].BoundingBox)); // take first candidate area
                 var table = tables[0];
                 rows = table.Rows;
             }
@@ -239,6 +240,59 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
         public bool SupportCompetitionType(CompetitionOwner competitionType)
         {
             return competitionType == CompetitionOwner.SpeedPuzzling;
+        }
+
+        public async Task AddParticipant(ParticipantResult participant, IReadOnlyList<Cell> row, int nameHeader, int countryHeader)
+        {
+            var fullname = row[nameHeader].GetText();
+            var countryString = row[countryHeader].GetText();
+            var country = countryString.GetEnumFromString<Countries>();
+            if (country == Countries.UNK)
+            {
+                country = Countries.USA;
+            }
+            var name = fullname.FixName();
+            var players = await m_playerStore.FindPlayerByName(name);
+
+            Player? player = null;
+            if (players != null && players.Count() > 0)
+            {
+                player = players.First();
+            }
+            if (player == null)
+            {
+                player = new Player { FullName = fullname.FixName(), Country = country };
+                await m_playerStore.Store(player);
+            }
+            participant.Participants.Add(new Participant { FullName = player.FullName, PlayerId = player.Id });
+        }
+
+        public async Task AddPairParticipants(ParticipantResult participant, IReadOnlyList<Cell> row, int nameHeader, int countryHeader)
+        {
+            var fullnames = row[nameHeader].GetText().Split("\r");
+            var countryString = row[countryHeader].GetText();
+            var country = countryString.GetEnumFromString<Countries>();
+            if (country == Countries.UNK)
+            {
+                country = Countries.USA;
+            }
+            foreach (var fullname in fullnames)
+            {
+                var name = fullname.FixName();
+                var players = await m_playerStore.FindPlayerByName(name);
+
+                Player? player = null;
+                if (players != null && players.Count() > 0)
+                {
+                    player = players.First();
+                }
+                if (player == null)
+                {
+                    player = new Player { FullName = fullname.FixName(), Country = country };
+                    await m_playerStore.Store(player);
+                }
+                participant.Participants.Add(new Participant { FullName = player.FullName, PlayerId = player.Id });
+            }
         }
     }
 }

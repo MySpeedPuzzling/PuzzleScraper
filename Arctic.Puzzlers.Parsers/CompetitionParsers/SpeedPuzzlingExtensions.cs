@@ -1,5 +1,4 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
-using Arctic.Puzzlers.Objects.Misc;
 using Tabula;
 
 namespace Arctic.Puzzlers.Parsers.CompetitionParsers
@@ -14,33 +13,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 participant.Results.Add(new Result { Time = time });
             }
         }
-
-        public static void AddParticipant(this ParticipantResult participant, IReadOnlyList<Cell> row, int nameHeader, int countryHeader)
-        {            
-            var fullname = row[nameHeader].GetText();
-            var countryString = row[countryHeader].GetText();
-            var country = countryString.GetEnumFromString<Countries>();
-            if(country == Countries.UNK)
-            {
-                country = Countries.USA;
-            }
-            participant.Participants.Add(new Participant { FullName = fullname.FixName(), Country = country });
-        }
-
-        public static void AddPairParticipants(this ParticipantResult participant, IReadOnlyList<Cell> row, int nameHeader, int countryHeader)
-        {
-            var fullnames = row[nameHeader].GetText().Split("\r");
-            var countryString = row[countryHeader].GetText();
-            var country = countryString.GetEnumFromString<Countries>();
-            if (country == Countries.UNK)
-            {
-                country = Countries.USA;
-            }
-            foreach (var fullname in fullnames)
-            {
-                participant.Participants.Add(new Participant { FullName = fullname.FixName(), Country = country });
-            }
-        }
+      
 
         public static string FixName(this string name)
         {

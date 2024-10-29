@@ -7,6 +7,7 @@
             CompetitionGroups = new List<CompetitionGroup>();
         }
 
+        public Guid CompetitionId { get; set; }
         public string? Name { get; set; }
         public List<CompetitionGroup> CompetitionGroups { get; set; }
         public DateTime Time { get; set; }

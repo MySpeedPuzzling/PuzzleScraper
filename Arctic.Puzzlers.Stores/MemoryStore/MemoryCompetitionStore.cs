@@ -40,6 +40,11 @@ namespace Arctic.Puzzlers.Stores.MemoryStore
         {
             return Task.FromResult(m_competitionList);
         }
+        public Task<List<Competition>> GetByName(string name)
+        {
+            var results = m_competitionList.Where(t => t.Name != null && t.Name.StartsWith(name, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            return Task.FromResult(results);
+        }
 
         public Task<List<PlayerCompetitionResult>> GetPlayerCompetitionResultByName(string name)
         {
