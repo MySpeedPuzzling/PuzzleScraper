@@ -67,5 +67,10 @@ namespace Arctic.Puzzlers.Stores.MemoryStore
             }
             return Task.FromResult(results);
         }
+        public Task<Competition?> Get(Guid guid)
+        {
+            var results = m_competitionList.Where(t => t.Name != null && t.CompetitionId == guid).FirstOrDefault();
+            return Task.FromResult(results);
+        }
     }
 }

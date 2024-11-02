@@ -5,6 +5,7 @@
         public Competition()
         {
             CompetitionGroups = new List<CompetitionGroup>();
+            CompetitionId = Guid.NewGuid();
         }
 
         public Guid CompetitionId { get; set; }

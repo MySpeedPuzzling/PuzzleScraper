@@ -3,6 +3,7 @@ using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Arctic.Puzzlers.Stores;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
@@ -42,12 +43,20 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                         {
                             continue;
                         }
+
+                        var competitionName = competitionPage.DocumentNode.SelectNodes("//p[contains(@class,'nombre_campeonato')]");
                         var listOfRounds = competitionPage.DocumentNode.SelectNodes("//nav[contains(@class,'nav-underline')]/a");
+                        var competition = new Competition();
+                        if (competitionName != null && competitionName.Count() == 1)
+                        {
+                            competition.Name = competitionName[0].InnerText;
+                        }
+                       
 
                         var individualRounds = listOfRounds.Where(t => t.GetAttributeValue("href", "").ToLower().Contains("individual"));
                         var pairRounds = listOfRounds.Where(t => t.GetAttributeValue("href", "").ToLower().Contains("pairs"));
                         var teamRounds = listOfRounds.Where(t => t.GetAttributeValue("href", "").ToLower().Contains("teams"));
-                        var competition = new Competition();
+
                         competition.Url = competitionUrl;
                         if (individualRounds.Any())
                         {
@@ -184,7 +193,8 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 
                 competitionRound.RoundType = competitionRound.RoundName.ToLower() == "final"? RoundType.Final: competitionRound.RoundName.ToLower().StartsWith('s') ? RoundType.Semifinal : RoundType.Qualification;
                 var placeAndTime = doc.DocumentNode.SelectSingleNode("//p[@class='lead']").InnerText;
-
+                var date = doc.DocumentNode.SelectNodes("//span[contains(i/@class,'bi-calendar3')]");
+                var clock = doc.DocumentNode.SelectNodes("//span[contains(i/@class,'bi-clock')]");
                 if (!string.IsNullOrEmpty(placeAndTime))
                 {
                     var placeAndTimeList = placeAndTime.Split('.', 2);
@@ -194,9 +204,36 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                         if (DateTime.TryParseExact(datetimeString, "dd/MM/yyyy-HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime time))
                         {
                             competitionRound.Time = time;
-                        }
+                        }                       
                         competitionRound.Location = placeAndTimeList[1];
                     }
+                    else if(placeAndTimeList.Length == 1)
+                    {
+                        competitionRound.Location = placeAndTimeList[0];
+                    }
+                }
+
+                if (date != null && date.Count == 1 && clock != null && clock.Count == 1)
+                {
+                    var datetimestring = date[0].InnerText + "-" + clock[0].InnerText;
+                    datetimestring = datetimestring.Replace(" ", string.Empty);
+                    if (DateTime.TryParseExact(datetimestring, "dd/MM/yyyy-HH:mm", CultureInfo.CurrentCulture, DateTimeStyles.None, out DateTime timeFromText))
+                    {
+                        competitionRound.Time = timeFromText;
+                    }
+                }
+                
+
+                var maxTime = doc.DocumentNode.SelectNodes("//span[contains(i/@class,'bi-stopwatch')]");
+                if(maxTime != null && maxTime.Count == 1 && TimeSpan.TryParse(CleanUpString(maxTime[0].InnerText), out TimeSpan maxTimeSpan)) 
+                {
+                    competitionRound.MaxTime= maxTimeSpan;
+                }
+
+                var pieceCount = doc.DocumentNode.SelectNodes("//span[contains(i/@class,'bi-puzzle')]");
+                if (pieceCount != null && pieceCount.Count == 1 && int.TryParse(CleanUpString(pieceCount[0].InnerText), out int pieceCountOut))
+                {
+                    competitionRound.NumberOfPieces = pieceCountOut;
                 }
                 int namefield = 3;
                 int timefield = 7;
@@ -246,6 +283,13 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             }
             currentUrl += node.GetAttributeValue("href", "");
             return true;
+        }
+
+        private string CleanUpString(string value)
+        {
+            value = value.Replace("&nbsp;", string.Empty);
+            value = value.Replace(" ", string.Empty);
+            return value;
         }
     }
 }

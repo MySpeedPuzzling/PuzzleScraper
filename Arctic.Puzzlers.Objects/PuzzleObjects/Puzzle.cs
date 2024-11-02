@@ -9,5 +9,6 @@ namespace Arctic.Puzzlers.Objects.PuzzleObjects
         [JsonConverter(typeof(BrandNameJsonConvert))]
         public BrandName BrandName { get; set; }
         public string? Name { get; set; }
+        public int Size { get; set; }
     }
 }

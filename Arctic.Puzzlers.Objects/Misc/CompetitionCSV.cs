@@ -3,13 +3,12 @@
     ////date, player(s) name event name, piece count, rank, time, and remaining pieces
     public class CompetitionCSV
     {
-        DateTime Date {  get; set; }
-        string PlayersName { get; set; } = string.Empty;
-        string EventName {  get; set; } = string.Empty;
-        long PieceCount { get; set; }
+        public DateTime Date {  get; set; }
+        public string PlayersName { get; set; } = string.Empty;
+        public string EventName {  get; set; } = string.Empty;
+        public long PieceCount { get; set; }
 
-        long Rank {  get; set; }
-        TimeSpan Time { get; set; }
-
+        public long Rank {  get; set; }
+        public TimeSpan Time { get; set; }
     }
 }

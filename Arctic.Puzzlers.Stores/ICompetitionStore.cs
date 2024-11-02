@@ -9,6 +9,7 @@ namespace Arctic.Puzzlers.Stores
         public Task<List<Competition>> GetAll();
 
         public Task<List<Competition>> GetByName(string name);
+        public Task<Competition?> Get(Guid guid);
         public Task<List<PlayerCompetitionResult>> GetPlayerCompetitionResultByName(string name);
     }
 }
