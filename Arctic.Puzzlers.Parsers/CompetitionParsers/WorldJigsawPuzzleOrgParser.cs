@@ -93,7 +93,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             }
         }
 
-        internal async Task AddResult(CompetitionRound competitionRound, HtmlNodeCollection values, int namefield, int timefield)
+        internal async Task AddResult(CompetitionRound competitionRound, HtmlNodeCollection values, int namefield, int timefield, int rankField)
         {
             var participantResult = new ParticipantResult();
             HtmlNodeCollection namesfield;
@@ -146,8 +146,11 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             {
                 singlePuzzleResult.FinishedPieces = long.Parse(Regex.Match(result, @"\d+").Value);
             }
-            
-            if(competitionRound.RoundType != RoundType.Final)
+            if(int.TryParse(values[rankField].InnerText,out int rank))
+            {
+                participantResult.Rank = rank;
+            }
+            if (competitionRound.RoundType != RoundType.Final)
             {
                 participantResult.Qualified = qualified;
             }
@@ -237,6 +240,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 }
                 int namefield = 3;
                 int timefield = 7;
+                int rankField = 0;
                 foreach (HtmlNode tableLine in doc.DocumentNode.SelectNodes("//tr"))
                 {
                     var fields = tableLine.SelectNodes("th");
@@ -252,6 +256,11 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                             {
                                 timefield = i;
                             }
+                            if (fields[i].InnerText.Equals("#", StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                rankField = i;
+                            }
+
                         }
                     }
                     var values = tableLine.SelectNodes("td");
@@ -260,7 +269,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                     {
                         continue;
                     }
-                    await AddResult(competitionRound, values, namefield, timefield);
+                    await AddResult(competitionRound, values, namefield, timefield, rankField);
                 }
                 competitionRound.ContestType = contestType;
                 competitionGroup.Rounds.Add(competitionRound);

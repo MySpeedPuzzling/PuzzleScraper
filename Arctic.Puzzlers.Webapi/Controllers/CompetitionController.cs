@@ -34,18 +34,13 @@ namespace Arctic.Puzzlers.Webapi.Controllers
             var html = "<p>List of competitions</p>";
             var results = await m_store.GetAll();
 
-            var baseurl= m_configuration.GetValue("BASEURL",string.Empty);
-            if (!baseurl.EndsWith('/'))
-            {
-                baseurl += "/";
-            }
             foreach (var result in results)
             {
                 foreach (var competitionGroups in result.CompetitionGroups)
                 {
                     foreach (var round in competitionGroups.Rounds) {
                         html += "<br/> ";
-                        html += $"<a href=\"{baseurl}api/Competition/CSV?competition={result.CompetitionId}&round={round.RoundId} \">{result.Name + " " + competitionGroups.ContestType + " " + round.RoundName} </a>";
+                        html += $"<a href=\"/api/Competition/CSV?competition={result.CompetitionId}&round={round.RoundId} \">{result.Name + " " + competitionGroups.ContestType + " " + round.RoundName} </a>";
                     }
                 }
                
@@ -93,7 +88,8 @@ namespace Arctic.Puzzlers.Webapi.Controllers
                 {
                     Date = rounddata.Time,
                     EventName = data.Name + " " + groupData.ContestType + " " + rounddata.RoundName,
-                    PlayersName = playersName
+                    PlayersName = playersName,
+                    Rank = result.Rank
                 };
 
                 competitionCSVs.Add(competitionCSV);

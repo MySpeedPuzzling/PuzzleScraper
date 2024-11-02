@@ -10,6 +10,8 @@
         public string? GroupName {  get; set; }
         public bool? Qualified { get; set; }
 
+        public int Rank { get; set; } = 0;
+
         public List<Participant> Participants { get; set; }       
         public List<Result> Results { get; set; }
         

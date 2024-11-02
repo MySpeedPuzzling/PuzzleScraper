@@ -38,8 +38,7 @@
         "RUNMODE": "48:00:00",
         "STORETYPE": "memory",
         "RESULTOUTPUTFOLDER": "/ContainerFolder",
-        "PARSETYPES": "Competition",
-        "BASEURL": "https://localhost:32772/"
+        "PARSETYPES": "Competition"
       },
       "publishAllPorts": true,
       "useSSL": true
