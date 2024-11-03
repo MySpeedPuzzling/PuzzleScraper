@@ -62,7 +62,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                         var competition = new Competition();
                         competition.Url = competitionUrl;
                         competition.Location = "Virtual";
-
+                        competition.Name = GetCompetitionName(stream);                        
                         var competitionGroup = await ParsePdf(stream);
                         competition.CompetitionGroups.Add(competitionGroup);
                         competition.SetTotalResults();
@@ -80,11 +80,30 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             }
         }
 
+        private string? GetCompetitionName(Stream stream)
+        {
+            stream.Position = 0;
+            using (var pdf = PdfDocument.Open(stream, new ParsingOptions() { ClipPaths = true }))
+            {
+                var rows = GetTableRows(pdf);
+                var page = pdf.GetPages().FirstOrDefault();
+                if(page == null)
+                {
+                    return string.Empty;
+                }
+                var text = ContentOrderTextExtractor.GetText(page);
+                var textLines = text.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+                var firstLine = textLines.First();
+                return firstLine.Replace("Results", "").TrimEnd();
+            }
+        }
+
         public async Task<CompetitionGroup> ParsePdf(Stream stream)
         {            
             var competitionGroup = new CompetitionGroup();
             var competitionRound = new CompetitionRound();
-
+            stream.Position = 0;
             using (var pdf = PdfDocument.Open(stream, new ParsingOptions() { ClipPaths = true }))
             {
                 var rows = GetTableRows(pdf);
@@ -93,8 +112,20 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                     var text = ContentOrderTextExtractor.GetText(page);
                     var textLines = text.Split(new string[] { "\r\n", "\r", "\n" },StringSplitOptions.None);
 
-                    var firstLine = textLines.First();
-                    competitionRound.RoundName = firstLine.Replace("Results", "").TrimEnd();
+                    if (string.IsNullOrEmpty(competitionRound.RoundName))
+                    {
+                        var roundLine = textLines.FirstOrDefault(t=> t.StartsWith("(") && t.EndsWith(")"));
+                        if (!string.IsNullOrEmpty(roundLine))
+                        {
+                            roundLine = roundLine.Replace("(", string.Empty);
+                            roundLine = roundLine.Replace(")", string.Empty);
+                            var roundLineData = roundLine.Split("--");
+                            if (roundLineData.Count() > 0)
+                            {
+                                competitionRound.RoundName = roundLineData[roundLineData.Count()-1];
+                            }                            
+                        }                        
+                    }
                     
 
                     var topRow = rows.First().ToArray();
