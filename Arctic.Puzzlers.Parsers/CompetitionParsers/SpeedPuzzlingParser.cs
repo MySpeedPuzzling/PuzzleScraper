@@ -65,6 +65,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 
                         var competitionGroup = await ParsePdf(stream);
                         competition.CompetitionGroups.Add(competitionGroup);
+                        competition.SetTotalResults();
                         var stored = await m_store.Store(competition);
                         if (stored)
                         {

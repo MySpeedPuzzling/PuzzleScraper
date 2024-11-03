@@ -111,6 +111,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                         var competitionGroup = new CompetitionGroup { ContestType = competitionSingleRound.ContestType };
                         competitionGroup.Rounds.Add(competitionSingleRound);
                         competition.CompetitionGroups.Add(competitionGroup);
+                        competition.SetTotalResults();
                         var addedSingleCompetition = await m_store.Store(competition);
                         if (addedSingleCompetition)
                         {
@@ -137,6 +138,7 @@ namespace Arctic.Puzzlers.CLI.InputParsing
                         competitionGroup.Rounds.Add(competitionSingleRound);
                         competition.CompetitionGroups.Add(competitionGroup);                       
                     }
+                    competition.SetTotalResults();
                     var added = await m_store.Store(competition);
                     if (added)
                     {

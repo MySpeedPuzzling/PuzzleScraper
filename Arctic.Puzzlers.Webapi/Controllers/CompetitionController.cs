@@ -28,7 +28,7 @@ namespace Arctic.Puzzlers.Webapi.Controllers
         }
 
         [HttpGet]
-        [Route("CSV/ListOfCompetitions")]
+        [Route("ListOfCompetitions")]
         public async Task<ContentResult> GetAllCompetitions()
         {
             var html = "<p>List of competitions</p>";
@@ -39,8 +39,7 @@ namespace Arctic.Puzzlers.Webapi.Controllers
                 foreach (var competitionGroups in result.CompetitionGroups)
                 {
                     foreach (var round in competitionGroups.Rounds) {
-                        html += "<br/> ";
-                        html += $"<a href=\"/api/Competition/CSV?competition={result.CompetitionId}&round={round.RoundId} \">{result.Name + " " + competitionGroups.ContestType + " " + round.RoundName} </a>";
+                        html += $"<p>{result.Name + " " + competitionGroups.ContestType + " " + round.RoundName} <a href=\"/api/Competition/Simplified?competition={result.CompetitionId}&round={round.RoundId}&format=csv \">CSV </a> <a href=\"/api/Competition/Simplified?competition={result.CompetitionId}&round={round.RoundId}&format=json \">JSON</a></p>";
                     }
                 }
                
@@ -54,9 +53,8 @@ namespace Arctic.Puzzlers.Webapi.Controllers
 
 
         [HttpGet]
-        [Route("CSV")]
-        [Produces("text/csv")]
-        public async Task<ActionResult> GetCsv(Guid competition, Guid round)
+        [Route("Simplified")]
+        public async Task<ActionResult> GetCsv(Guid competition, Guid round, string format)
         {
             
             var data = await m_store.Get(competition);
@@ -74,7 +72,7 @@ namespace Arctic.Puzzlers.Webapi.Controllers
             {
                 return NotFound();
             }
-            var competitionCSVs = new List<CompetitionCSV>();
+            var competitionCSVs = new List<CompetitionResult>();
 
             foreach(var result in rounddata.Participants)
             {
@@ -84,26 +82,68 @@ namespace Arctic.Puzzlers.Webapi.Controllers
                 {
                     playersName = result.GroupName + "(" + playersName + ")";
                 }
-                var competitionCSV = new CompetitionCSV()
+                
+                var competitionCSV = new CompetitionResult()
                 {
                     Date = rounddata.Time,
                     EventName = data.Name + " " + groupData.ContestType + " " + rounddata.RoundName,
                     PlayersName = playersName,
-                    Rank = result.Rank
+                    Rank = result.Rank,
+                    PieceCount = result.FinishedPieces,
+                    Time = result.TotalTime                    
                 };
-
+                
                 competitionCSVs.Add(competitionCSV);
             }
-            using (var memoryStream = new MemoryStream())
-            {               
-                using (var streamWriter = new StreamWriter(memoryStream))
-                using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
-                {
-                    csvWriter.WriteRecords(competitionCSVs);
-                }
 
-                return File(memoryStream.ToArray(), "text/csv", $"Export-{DateTime.Now.ToString("s")}.csv");
+            if(rounddata.MaxTime != TimeSpan.Zero)
+            {
+                int playerCounter = 0;
+                double totalPiecesPerMinute = 0.0;
+                competitionCSVs.ForEach(compCSV =>
+                {
+                    var timespent = compCSV.Time == TimeSpan.Zero ? rounddata.MaxTime : compCSV.Time;
+                    var piecesPerMinute = (compCSV.PieceCount / timespent.TotalSeconds) * 60;
+                    compCSV.PiecesPerMinute = Math.Round(piecesPerMinute, 2);
+                    if(piecesPerMinute >0)
+                    {
+                        totalPiecesPerMinute += piecesPerMinute;
+                        playerCounter++;
+                    }
+
+                });
+
+                var averagePiecesPerMinute = totalPiecesPerMinute / playerCounter;
+                if(averagePiecesPerMinute > 0)
+                {
+                    competitionCSVs.ForEach(compCSV =>
+                    {
+                        compCSV.SimplifiedJpar = Math.Round(averagePiecesPerMinute / compCSV.PiecesPerMinute, 8);
+                    });
+                }   
+                
             }
+
+            
+            switch (format)
+            {
+                case "json":
+                    return Ok(competitionCSVs);
+                case "csv":
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        using (var streamWriter = new StreamWriter(memoryStream))
+                        using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+                        {
+                            csvWriter.WriteRecords(competitionCSVs);
+                        }
+
+                        return File(memoryStream.ToArray(), "text/csv", $"Export-{DateTime.Now.ToString("s")}.csv");
+                    }
+                default:
+                    return Ok(competitionCSVs);
+            }
+
         }
 
     }

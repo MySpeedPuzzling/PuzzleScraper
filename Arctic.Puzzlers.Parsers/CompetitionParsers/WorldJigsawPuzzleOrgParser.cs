@@ -3,10 +3,9 @@ using Arctic.Puzzlers.Objects.PuzzleObjects;
 using Arctic.Puzzlers.Stores;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 {
@@ -83,6 +82,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                                 competition.CompetitionGroups.Add(teamGroup);
                             }
                         }
+                        competition.SetTotalResults();
                         await m_store.Store(competition);
                     }                     
                     catch (Exception ex)
@@ -140,12 +140,14 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
             singlePuzzleResult.Puzzle = competitionRound.Puzzles.First();
             if (Regex.IsMatch(result, @"\d\d:\d\d:\d\d"))
             {
-                singlePuzzleResult.Time = TimeSpan.Parse(Regex.Match(result, @"\d\d:\d\d:\d\d").Value);
+                singlePuzzleResult.Time = TimeSpan.Parse(Regex.Match(result, @"\d\d:\d\d:\d\d").Value);                
             }
             else
             {
                 singlePuzzleResult.FinishedPieces = long.Parse(Regex.Match(result, @"\d+").Value);
             }
+
+
             if(int.TryParse(values[rankField].InnerText,out int rank))
             {
                 participantResult.Rank = rank;
@@ -298,6 +300,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
         {
             value = value.Replace("&nbsp;", string.Empty);
             value = value.Replace(" ", string.Empty);
+            value = value.Replace(".", string.Empty);
             return value;
         }
     }

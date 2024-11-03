@@ -17,7 +17,7 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
         public List<Puzzle> Puzzles { get; set; } = new List<Puzzle>();
         public DateTime Time { get; set; } = new DateTime();
 
-        public TimeSpan MaxTime { get; set; } = new TimeSpan();
+        public TimeSpan MaxTime { get; set; } = TimeSpan.Zero;
         public int NumberOfPieces { get; set; } = 0;
         public string Location { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;

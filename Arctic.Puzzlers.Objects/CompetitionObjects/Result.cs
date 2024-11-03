@@ -4,7 +4,7 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
 {
     public class Result
     {
-        private TimeSpan m_time;
+        private TimeSpan m_time = TimeSpan.Zero;
         public TimeSpan Time
         {
             get

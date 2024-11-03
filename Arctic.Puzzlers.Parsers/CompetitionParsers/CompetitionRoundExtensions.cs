@@ -23,5 +23,6 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 competitionObject.ContestType = ContestType.Unknown;
             }
         }
+      
     }
 }
