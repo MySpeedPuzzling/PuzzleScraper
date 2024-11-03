@@ -52,8 +52,13 @@ namespace Arctic.Puzzlers.Stores.Filestore
         
         public void Dispose()
         {
+            StoreData();
+        }
+
+        private void StoreData()
+        {
             var folder = m_configuration.GetFileOutputFolder();
-            var fileName = Path.Combine(folder, JsonFileName);      
+            var fileName = Path.Combine(folder, JsonFileName);
 
             using (FileStream createStream = File.Create(fileName))
             {
@@ -68,11 +73,13 @@ namespace Arctic.Puzzlers.Stores.Filestore
             {
                 m_competitionList.RemoveAll(t => t.Url == competition.Url);
                 m_competitionList.Add(competition);
+                StoreData();
                 return Task.FromResult(true);
             }
             else if (!m_competitionList.Any(t => t.Url == competition.Url))
             {
                 m_competitionList.Add(competition);
+                StoreData();
                 Task.FromResult(true);
             }
             return Task.FromResult(false);
