@@ -1,10 +1,6 @@
-﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
-using Arctic.Puzzlers.Stores;
-using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
-using CsvHelper;
-using Arctic.Puzzlers.Objects.Misc;
-using Microsoft.VisualBasic;
+﻿using Microsoft.AspNetCore.Mvc;
+using Arctic.Puzzlers.Webapi.DB;
+using Arctic.Puzzlers.Objects.DTO;
 
 namespace Arctic.Puzzlers.Webapi.Controllers
 {
@@ -12,19 +8,86 @@ namespace Arctic.Puzzlers.Webapi.Controllers
     [ApiController]
     public class CompetitionController : ControllerBase
     {
-        private readonly ICompetitionStore m_store;
-        private readonly IConfiguration m_configuration;
-
-        public CompetitionController(ICompetitionStore competitionStore, IConfiguration configuration) 
+        private readonly ICompetitionDBStore m_store;
+        private readonly ICompetitionGroupDBStore m_groupStore;
+        private readonly ICompetitionRoundDBStore m_roundStore;
+        private readonly ILogger<CompetitionController> m_logger;
+        public CompetitionController(ICompetitionDBStore store,ICompetitionGroupDBStore competitionGroupDBStore, ICompetitionRoundDBStore competitionRoundDBStore, ILogger<CompetitionController> logger) 
         {
-            m_store = competitionStore;
-            m_configuration = configuration;
+            m_store = store;
+            m_logger = logger;
+            m_groupStore = competitionGroupDBStore;
+            m_roundStore = competitionRoundDBStore; 
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Competition>>> Get()
+        [Route("{id}")]
+        public async Task<ActionResult<CompetitionDTO>> GetById(Guid id)
         {
-            return await m_store.GetAll();
+            try
+            {
+                var response = await m_store.GetByIdAsync(id);
+                if (response != null)
+                {
+                    return Ok(response);
+                }
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                m_logger.LogError(ex, "Failed to get competiton by id");
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<CompetitionDTO>> GetByName([FromQuery] string name)
+        {
+            try
+            {
+                var response = await m_store.GetByUniqueNameAsync(name);
+                if (response != null)
+                {
+                    return Ok(response);
+                }
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                m_logger.LogError(ex, "Failed to get competiton by id");
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public async Task<ActionResult> CreateOrUpdateCompetition(Guid id, [FromBody] CompetitionDTO competition)
+        {
+            try
+            {
+                var foundCompetition = await m_store.GetByIdAsync(id);
+                
+                if (foundCompetition == null)
+                {
+                    var foundCompetitionByName = await m_store.GetByUniqueNameAsync(competition.UniqueName);
+                    if(foundCompetitionByName != null)
+                    {
+                        competition.Id = foundCompetitionByName.Id;
+                        await m_store.UpdateAsync(competition);
+                        return Ok(competition);
+                    }
+                    await m_store.InsertAsync(competition);
+                    return Created();
+                }
+                competition.Id = foundCompetition.Id;
+                await m_store.UpdateAsync(competition);
+                return Ok(competition);
+            }
+            catch (Exception ex)
+            {
+                m_logger.LogError(ex, "Failed to create or update competition");
+                return StatusCode(500);
+            }
         }
 
         [HttpGet]
@@ -32,14 +95,15 @@ namespace Arctic.Puzzlers.Webapi.Controllers
         public async Task<ContentResult> GetAllCompetitions()
         {
             var html = "<p>List of competitions</p>";
-            var results = await m_store.GetAll();
+            var competitions = await m_store.GetAllAsync();
 
-            foreach (var result in results)
+
+            foreach (var competition in competitions)
             {
-                foreach (var competitionGroups in result.CompetitionGroups)
+                foreach (var competitionGroup in await m_groupStore.GetByCompetitionIdAsync(competition.Id))
                 {
-                    foreach (var round in competitionGroups.Rounds) {
-                        html += $"<p>{result.Name + " " + competitionGroups.ContestType + " " + round.RoundName} <a href=\"/api/Competition/Simplified?competition={result.CompetitionId}&round={round.RoundId}&format=csv \">CSV </a> <a href=\"/api/Competition/Simplified?competition={result.CompetitionId}&round={round.RoundId}&format=json \">JSON</a></p>";
+                    foreach (var round in await m_roundStore.GetByGroupId(competitionGroup.Id)) {
+                        html += $"<p>{competition.Name + " " + competitionGroup.ContestType + " " + round.RoundName} <a href=\"/api/Result/Simplified?competitionRoundId={round.Id}&format=csv \">CSV </a> <a href=\"/api/Result/Simplified?competitionRoundId={round.Id}&format=json \">JSON</a></p>";
                     }
                 }
                
@@ -49,102 +113,6 @@ namespace Arctic.Puzzlers.Webapi.Controllers
                 Content = html,
                 ContentType = "text/html"
             };
-        }
-
-
-        [HttpGet]
-        [Route("Simplified")]
-        public async Task<ActionResult> GetCsv(Guid competition, Guid round, string format)
-        {
-            
-            var data = await m_store.Get(competition);
-            if(data == null)
-            {
-                return NotFound();
-            }
-            var groupData = data.CompetitionGroups.Where(t => t.Rounds.Any(t => t.RoundId == round)).FirstOrDefault();
-            if (groupData == null)
-            {
-                return NotFound();
-            }
-            var rounddata = groupData.Rounds.Where(t => t.RoundId == round).FirstOrDefault();
-            if(rounddata == null)
-            {
-                return NotFound();
-            }
-            var competitionCSVs = new List<CompetitionResult>();
-
-            foreach(var result in rounddata.Participants)
-            {
-                var playersName = string.Empty;
-                playersName = string.Join(";", result.Participants.Select(t=>t.FullName));
-                if (!string.IsNullOrEmpty(result.GroupName))
-                {
-                    playersName = result.GroupName + "(" + playersName + ")";
-                }
-                
-                var competitionCSV = new CompetitionResult()
-                {
-                    Date = rounddata.Time,
-                    EventName = data.Name + " " + groupData.ContestType + " " + rounddata.RoundName,
-                    PlayersName = playersName,
-                    Rank = result.Rank,
-                    PieceCount = result.FinishedPieces,
-                    Time = result.TotalTime                    
-                };
-                
-                competitionCSVs.Add(competitionCSV);
-            }
-
-            if(rounddata.MaxTime != TimeSpan.Zero)
-            {
-                int playerCounter = 0;
-                double totalPiecesPerMinute = 0.0;
-                competitionCSVs.ForEach(compCSV =>
-                {
-                    var timespent = compCSV.Time == TimeSpan.Zero ? rounddata.MaxTime : compCSV.Time;
-                    var piecesPerMinute = (compCSV.PieceCount / timespent.TotalSeconds) * 60;
-                    compCSV.PiecesPerMinute = Math.Round(piecesPerMinute, 2);
-                    if(piecesPerMinute >0)
-                    {
-                        totalPiecesPerMinute += piecesPerMinute;
-                        playerCounter++;
-                    }
-
-                });
-
-                var averagePiecesPerMinute = totalPiecesPerMinute / playerCounter;
-                if(averagePiecesPerMinute > 0)
-                {
-                    competitionCSVs.ForEach(compCSV =>
-                    {
-                        compCSV.SimplifiedJpar = Math.Round(averagePiecesPerMinute / compCSV.PiecesPerMinute, 8);
-                    });
-                }   
-                
-            }
-
-            
-            switch (format)
-            {
-                case "json":
-                    return Ok(competitionCSVs);
-                case "csv":
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        using (var streamWriter = new StreamWriter(memoryStream))
-                        using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
-                        {
-                            csvWriter.WriteRecords(competitionCSVs);
-                        }
-
-                        return File(memoryStream.ToArray(), "text/csv", $"Export-{DateTime.Now.ToString("s")}.csv");
-                    }
-                default:
-                    return Ok(competitionCSVs);
-            }
-
-        }
-
+        }   
     }
 }

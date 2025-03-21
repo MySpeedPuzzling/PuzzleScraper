@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-competitionround-table
+      author: Gaute Brakstad
+      changes:
+        - createTable:
+            tableName: competitionround
+            schemaName:  jigsaw
+            remarks: table for storing competitionround data
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: competitiongroupid
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: startdate
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data
+                  type: JSONB
+                  constraints:
+                    nullable: true
+  - changeSet:
+     id: create-competitionround-name-index
+     author: Gaute Brakstad
+     changes:
+       - createIndex:
+           indexName: idx_competitionround_name
+           tableName: competitionround
+           schemaName: jigsaw
+           columns:
+             - column:
+                 name: name 

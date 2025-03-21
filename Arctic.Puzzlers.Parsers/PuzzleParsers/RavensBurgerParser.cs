@@ -6,7 +6,7 @@ using System.Globalization;
 
 namespace Arctic.Puzzlers.Parsers.PuzzleParsers
 {
-    public class RavensBurgerParser : IPuzzlePageParser
+    public class RavensBurgerParser : ICompetitionParser
     {
         private ILogger<RavensBurgerParser> m_logger;
         private readonly IPuzzleStore m_store;

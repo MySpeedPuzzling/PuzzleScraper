@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-playerresult-table
+      author: Gaute Brakstad
+      changes:
+        - createTable:
+            tableName: playerresult
+            schemaName:  jigsaw
+            remarks: table for storing player result connection
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: resultid
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: playerid
+                  type: UUID
+                  constraints:
+                    nullable: false

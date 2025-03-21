@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "Arctic.Puzzlers.CompetitionBackgroundWorker": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "DockerfileRunArguments": "--network backend",
+      "environmentVariables": {
+        "RUNMODE": "48:00:00",
+        "APIURL": "http://webapp:8080/",
+        "RESULTOUTPUTFOLDER": "/ContainerFolder",
+        "COMPETITIONDATAFOLDER": "/ContainerFolder",
+        "PARSETYPES": "Competition"
+      }
+    }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json"
+}

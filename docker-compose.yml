@@ -1,15 +1,109 @@
 version: "3.7"
+volumes:
+    postgres-data:
+
 services:
-  webapp:
-    image: ghcr.io/myspeedpuzzling/scraper:master
-    volumes:
-          - .:/output
+  frontend:
+    build: 
+      context: .    
+      dockerfile: /arctic.puzzlers.frontend/Dockerfile
     ports:
-            - "8080:8080"
+      - "3000:80"
+    volumes:
+     - .:/app
+     - ./node_modules:/app/node_modules
+    stdin_open: true
+    tty: true
+    networks:
+       - frontend
+       - backend
+  webapp:
+    build: 
+      context: .    
+      dockerfile: /Arctic.Puzzlers.Webapi/Dockerfile
+
+    volumes:
+        - c:/temp/webapp:/output
+        - ~/.aspnet/https:/https:ro
+    ports:
+        - "8080:8080"
     environment:
       ASPNETCORE_HTTP_PORTS: 8080
-      RUNMODE": "48:00:00"
-      STORETYPE: "json"
+      ASPNETCORE_Kestrel__Certificates__Default__Password: test123
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/aspnetapp.pfx
       RESULTOUTPUTFOLDER: "/output"
-      PARSETYPES: "Competition"
-      LOGGING__LOGLEVEL__DEFAULT: Information
+      COMPETITIONDATAFOLDER: "/output"
+      LOGGING__LOGLEVEL__DEFAULT: Error
+      BASEURL: "https://89.162.92.35:20500"
+      DatabaseUserName: "postgres"
+      DatabaseUserPassword: "postgres"
+      DatabaseName: "competitiondata"
+      DatabaseHost: "postgres"
+    networks:
+       - frontend
+       - backend
+  background:
+    build: 
+        context: .
+        dockerfile: /Arctic.Puzzlers.CompetitionBackgroundWorker/Dockerfile
+    volumes:
+        - c:/temp:/output
+    environment:
+        RUNMODE: "48:00:00"
+        APIURL: "http://webapp:8080/"
+        RESULTOUTPUTFOLDER: "/output"
+        COMPETITIONDATAFOLDER: "/output"
+        PARSETYPES: "Competition"
+        LOGGING__LOGLEVEL__DEFAULT: Error
+    networks:
+        - backend
+  postgres:
+      image: postgres:16.0
+      environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: competitiondata
+      volumes:
+          - postgres-data:/var/lib/postgresql/data
+      healthcheck:
+        test: pg_isready -U postgres -d competitiondata
+        interval: 10s
+        timeout: 3s
+        retries: 3
+      networks:
+        - backend
+  Liquibase:
+    # Image to be pulled from Docker Hub
+    image: liquibase/liquibase:4.9.1
+    # Name of the container
+    container_name: Liquibase_container
+    # Setting depends_on to PostgreSQL container to wait till the service is ready to accept connections
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Volume to add the liquibase collection of scripts
+    volumes:
+      - ./Database/sql/liquibase/changeLog/:/liquibase/changelog/
+    # Command to run the liquibase update service
+    command: --defaults-file=/liquibase/changelog/liquibase.properties update
+    networks:
+        - backend
+  adminer:
+      image: adminer:4.8.0
+      ports:
+          - "8002:8080"
+      environment:
+          ADMINER_DEFAULT_SERVER: postgres
+      depends_on:
+          - postgres
+      networks:
+        - frontend
+        - backend
+networks:
+  frontend:
+    # Specify driver options
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
+  backend:
+    name: backend

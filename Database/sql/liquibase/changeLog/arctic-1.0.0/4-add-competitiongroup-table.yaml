@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-competitiongroup-table
+      author: Gaute Brakstad
+      changes:
+        - createTable:
+            tableName: competitiongroup
+            schemaName:  jigsaw
+            remarks: table for storing competitiongroup data
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: competitionid
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: contesttype
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data
+                  type: JSONB
+                  constraints:
+                    nullable: true
+  - changeSet:
+     id: create-competitiongroup-name-index
+     author: Gaute Brakstad
+     changes:
+       - createIndex:
+           indexName: idx_competitiongroup_name
+           tableName: competitiongroup
+           schemaName: jigsaw
+           columns:
+             - column:
+                 name: name
+  - changeSet:
+     id: create-competitiongroup-startdate-index
+     author: Gaute Brakstad
+     changes:
+       - createIndex:
+           indexName: idx_competitiongroup_startdate
+           tableName: competitiongroup
+           schemaName: jigsaw
+           columns:
+             - column:
+                 name: startdate        

@@ -19,11 +19,11 @@ namespace Arctic.Puzzlers.Stores.MemoryStore
         {
             if (m_configuration.OverrideData())
             {
-                m_competitionList.RemoveAll(t => t.Url == competition.Url);
+                m_competitionList.RemoveAll(t => t.Url == competition.Url && t.Name == competition.Name);
                 m_competitionList.Add(competition);
                 return Task.FromResult(true);
             }
-            else if (!m_competitionList.Any(t => t.Url == competition.Url))
+            else if (!m_competitionList.Any(t => t.Url == competition.Url && t.Name == competition.Name))
             {
                 m_competitionList.Add(competition);
                 Task.FromResult(true);

@@ -4,7 +4,7 @@ using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
 namespace Arctic.Puzzlers.Parsers.PuzzleParsers
 {
-    public class SchmidtParser : IPuzzlePageParser
+    public class SchmidtParser : ICompetitionParser
     {
         private readonly ILogger<SchmidtParser> m_logger;
         private List<long> m_allowedSizes = new List<long>() { 200, 300, 500, 1000 };

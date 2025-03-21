@@ -32,13 +32,16 @@
       "commandName": "Docker",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
+      "DockerfileRunArguments": "--network backend",
       "environmentVariables": {
         "ASPNETCORE_HTTPS_PORTS": "8081",
         "ASPNETCORE_HTTP_PORTS": "8080",
-        "RUNMODE": "48:00:00",
-        "STORETYPE": "memory",
+        "DatabaseUserName": "postgres",
+        "DatabaseUserPassword": "postgres",
+        "DatabaseName": "competitiondata",
+        "DatabaseHost": "postgres",
         "RESULTOUTPUTFOLDER": "/ContainerFolder",
-        "PARSETYPES": "Competition"
+        "COMPETITIONDATAFOLDER": "/ContainerFolder"
       },
       "publishAllPorts": true,
       "useSSL": true

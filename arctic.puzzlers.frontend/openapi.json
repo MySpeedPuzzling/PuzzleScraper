@@ -1,0 +1,1350 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Arctic.Puzzlers.Webapi",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/Competition/{id}": {
+      "get": {
+        "tags": [
+          "Competition"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Competition"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitionDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitionDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitionDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Competition": {
+      "get": {
+        "tags": [
+          "Competition"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Competition/ListOfCompetitions": {
+      "get": {
+        "tags": [
+          "Competition"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/CompetitionGroup/{id}": {
+      "get": {
+        "tags": [
+          "CompetitionGroup"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionGroupDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionGroupDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionGroupDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "CompetitionGroup"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitionGroupDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitionGroupDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitionGroupDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/CompetitionGroup/competition/{competitionid}": {
+      "get": {
+        "tags": [
+          "CompetitionGroup"
+        ],
+        "parameters": [
+          {
+            "name": "competitionid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompetitionGroupDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompetitionGroupDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompetitionGroupDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/CompetitionRound/{id}": {
+      "get": {
+        "tags": [
+          "CompetitionRound"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionRoundDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionRoundDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionRoundDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "CompetitionRound"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitionRoundDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitionRoundDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitionRoundDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionRoundDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionRoundDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompetitionRoundDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/CompetitionRound/competitiongroup/{id}": {
+      "get": {
+        "tags": [
+          "CompetitionRound"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompetitionRoundDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompetitionRoundDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompetitionRoundDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Player": {
+      "get": {
+        "tags": [
+          "Player"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlayerDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlayerDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlayerDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Player/{id}": {
+      "get": {
+        "tags": [
+          "Player"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlayerDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlayerDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlayerDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Player"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Result/{id}": {
+      "get": {
+        "tags": [
+          "Result"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDTO"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Result"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDTO"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDTO"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultDTO"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Result/player/{id}": {
+      "get": {
+        "tags": [
+          "Result"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResultDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResultDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResultDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Result/competitionround/{id}": {
+      "get": {
+        "tags": [
+          "Result"
+        ],
+        "parameters": [
+          {
+            "name": "roundId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResultDTO"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResultDTO"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ResultDTO"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Result/Simplified": {
+      "get": {
+        "tags": [
+          "Result"
+        ],
+        "parameters": [
+          {
+            "name": "competitionRoundId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BrandName": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "CompetitionDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "uniqueName": {
+            "type": "string",
+            "nullable": true
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompetitionGroupDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "competitionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contestType": {
+            "$ref": "#/components/schemas/ContestType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompetitionOwner": {
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "CompetitionRoundDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "competitionGroupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "roundName": {
+            "type": "string",
+            "nullable": true
+          },
+          "roundType": {
+            "$ref": "#/components/schemas/RoundType"
+          },
+          "contestType": {
+            "$ref": "#/components/schemas/ContestType"
+          },
+          "puzzles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Puzzle"
+            },
+            "nullable": true
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "maxTime": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "numberOfPieces": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContestType": {
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "Countries": {
+        "enum": [
+          0,
+          49518,
+          51537,
+          69543,
+          99237,
+          102358,
+          130758,
+          146669,
+          149590,
+          163843,
+          174982,
+          192950,
+          203312,
+          223816,
+          226074,
+          239880,
+          241170,
+          248816,
+          272103,
+          285570,
+          286963,
+          289688,
+          290291,
+          290557,
+          294640,
+          298795,
+          337996,
+          338010,
+          357994,
+          366755,
+          390903,
+          433561,
+          453733,
+          458258,
+          587116,
+          597427,
+          607072,
+          614540,
+          617790,
+          630336,
+          660013,
+          661882,
+          690791,
+          718075,
+          719819,
+          732800,
+          783754,
+          798544,
+          798549,
+          831053,
+          878675,
+          895949,
+          921929,
+          927384,
+          932692,
+          933860,
+          934292,
+          934841,
+          935317,
+          953987,
+          1024031,
+          1036973,
+          1062947,
+          1149361,
+          1168579,
+          1210997,
+          1218197,
+          1220409,
+          1227603,
+          1252634,
+          1269750,
+          1282028,
+          1282588,
+          1282988,
+          1327865,
+          1512440,
+          1522867,
+          1527747,
+          1546748,
+          1547314,
+          1547376,
+          1559582,
+          1562822,
+          1605651,
+          1643084,
+          1655842,
+          1668284,
+          1694008,
+          1733045,
+          1814991,
+          1819730,
+          1820814,
+          1821275,
+          1831722,
+          1835841,
+          1861060,
+          1873107,
+          1880251,
+          1899402,
+          1966436,
+          2017370,
+          2029969,
+          2077456,
+          2078138,
+          2080185,
+          2081918,
+          2088628,
+          2103350,
+          2110297,
+          2110425,
+          2134431,
+          2139685,
+          2155115,
+          2186224,
+          2205218,
+          2215636,
+          2233387,
+          2245662,
+          2260494,
+          2264397,
+          2275384,
+          2287781,
+          2300660,
+          2309096,
+          2328926,
+          2361809,
+          2363686,
+          2372248,
+          2378080,
+          2395170,
+          2400553,
+          2403846,
+          2410758,
+          2411586,
+          2413451,
+          2420477,
+          2434508,
+          2440476,
+          2453866,
+          2461445,
+          2464461,
+          2510769,
+          2542007,
+          2562770,
+          2589581,
+          2622320,
+          2623032,
+          2629691,
+          2635167,
+          2658434,
+          2661886,
+          2750405,
+          2782113,
+          2802361,
+          2921044,
+          2960313,
+          2963597,
+          2993457,
+          3017382,
+          3041565,
+          3042058,
+          3042142,
+          3042225,
+          3042362,
+          3057568,
+          3077311,
+          3144096,
+          3164670,
+          3168068,
+          3175395,
+          3190538,
+          3194884,
+          3202326,
+          3277605,
+          3351879,
+          3355338,
+          3370751,
+          3371123,
+          3374084,
+          3374766,
+          3378535,
+          3381670,
+          3382998,
+          3424932,
+          3425505,
+          3437598,
+          3439705,
+          3469034,
+          3474414,
+          3474415,
+          3489940,
+          3508796,
+          3562981,
+          3570311,
+          3572887,
+          3573345,
+          3573511,
+          3573591,
+          3575174,
+          3575830,
+          3576396,
+          3576468,
+          3576916,
+          3577279,
+          3577718,
+          3577815,
+          3578097,
+          3578421,
+          3578476,
+          3579143,
+          3580239,
+          3580718,
+          3582678,
+          3585968,
+          3595528,
+          3608932,
+          3617476,
+          3624060,
+          3625428,
+          3658394,
+          3686110,
+          3703430,
+          3723988,
+          3865483,
+          3895114,
+          3923057,
+          3932488,
+          3996063,
+          4030656,
+          4030699,
+          4030945,
+          4031074,
+          4032283,
+          4034749,
+          4034894,
+          4036232,
+          4041468,
+          4043988,
+          4566966,
+          4796775,
+          5854968,
+          5880801,
+          6251999,
+          6252001,
+          6254930,
+          6290252,
+          6697173,
+          7609695,
+          7626836,
+          7626844,
+          7909807,
+          8505032,
+          8505033
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "ParsedIdentifier": {
+        "type": "object",
+        "properties": {
+          "originalUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "identifier": {
+            "type": "string",
+            "nullable": true
+          },
+          "userOwner": {
+            "$ref": "#/components/schemas/CompetitionOwner"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PlayerDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "$ref": "#/components/schemas/Countries"
+          },
+          "parsedIdentifier": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedIdentifier"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Puzzle": {
+        "type": "object",
+        "properties": {
+          "shortId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "brandName": {
+            "$ref": "#/components/schemas/BrandName"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PuzzleResult": {
+        "type": "object",
+        "properties": {
+          "puzzleTime": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "finishedPieces": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "parsedPiecesPerMinute": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "puzzle": {
+            "$ref": "#/components/schemas/Puzzle"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ResultDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "playerIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "totalTime": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "finishedPieces": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "competitionRoundId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "groupName": {
+            "type": "string",
+            "nullable": true
+          },
+          "qualified": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PuzzleResult"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RoundType": {
+        "enum": [
+          0,
+          1,
+          2
+        ],
+        "type": "integer",
+        "format": "int32"
+      }
+    }
+  }
+}

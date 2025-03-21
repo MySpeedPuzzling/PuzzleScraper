@@ -1,6 +1,4 @@
-using Arctic.Puzzlers.Parsers;
-using Arctic.Puzzlers.Stores;
-using Arctic.Puzzlers.Webapi;
+using Arctic.Puzzlers.Webapi.DB;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +8,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddParser();
-builder.Services.AddDataStores(builder.Configuration);
-builder.Services.AddHostedService<Worker>();
+builder.Services.AddDbStores(builder.Configuration);
 var app = builder.Build();
 
 app.UseSwagger();

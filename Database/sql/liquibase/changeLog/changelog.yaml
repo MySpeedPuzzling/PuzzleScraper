@@ -1,0 +1,3 @@
+databaseChangeLog:
+  - includeAll:
+      path: arctic-1.0.0

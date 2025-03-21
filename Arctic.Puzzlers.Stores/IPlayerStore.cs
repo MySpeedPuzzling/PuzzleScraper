@@ -1,14 +1,14 @@
-﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
+﻿using Arctic.Puzzlers.Objects.DTO;
 
 
 namespace Arctic.Puzzlers.Stores
 {
     public interface IPlayerStore
     {
-        public Task<bool> Store(Player player);
+        public Task<bool> CreateOrUpdatePlayerAsync(Guid id, PlayerDTO player);
 
-        public Task<Player?> GetPlayerByGuid(Guid id);
+        public Task<PlayerDTO?> GetPlayerByIdAsync(Guid id);
 
-        public Task<IEnumerable<Player>> FindPlayerByName(string name);
+        public Task<IEnumerable<PlayerDTO>?> GetPlayersByNameAsync(string name);
     }
 }

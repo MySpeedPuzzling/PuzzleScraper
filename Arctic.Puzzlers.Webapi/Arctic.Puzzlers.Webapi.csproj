@@ -13,14 +13,15 @@
 
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="33.0.1" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.1" />
+    <PackageReference Include="Npgsql" Version="9.0.2" />
+    <PackageReference Include="Npgsql.DependencyInjection" Version="9.0.2" />
+    <PackageReference Include="Npgsql.Json.NET" Version="9.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Arctic.Puzzlers.Objects\Arctic.Puzzlers.Objects.csproj" />
-    <ProjectReference Include="..\Arctic.Puzzlers.Parsers\Arctic.Puzzlers.Parsers.csproj" />
-    <ProjectReference Include="..\Arctic.Puzzlers.Stores\Arctic.Puzzlers.Stores.csproj" />
   </ItemGroup>
 
 </Project>

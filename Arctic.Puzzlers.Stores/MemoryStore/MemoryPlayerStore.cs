@@ -1,28 +1,27 @@
-﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
-using Microsoft.Extensions.Configuration;
+﻿using Arctic.Puzzlers.Objects.DTO;
 
 namespace Arctic.Puzzlers.Stores.MemoryStore
 {
     public class MemoryPlayerStore : IPlayerStore
     {
-        private List<Player> m_players;
+        private List<PlayerDTO> m_players;
         public MemoryPlayerStore()
         {
-            m_players = new List<Player>();
+            m_players = new List<PlayerDTO>();
         }
-        public Task<IEnumerable<Player>> FindPlayerByName(string name)
+        public Task<IEnumerable<PlayerDTO>> GetPlayersByNameAsync(string name)
         {
             var players = m_players.Where(p => p.FullName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
             return Task.FromResult(players);
         }
 
-        public Task<Player?> GetPlayerByGuid(Guid id)
+        public Task<PlayerDTO?> GetPlayerByIdAsync(Guid id)
         {
             var player = m_players.FirstOrDefault(p => p.Id == id);
             return Task.FromResult(player);
         }
 
-        public Task<bool> Store(Player player)
+        public Task<bool> CreateOrUpdatePlayerAsync(Guid id, PlayerDTO player)
         {
             if (!m_players.Any(t => t.FullName == player.FullName))
             {

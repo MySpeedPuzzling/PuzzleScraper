@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-competition-table
+      author: Gaute Brakstad
+      changes:
+        - createTable:
+            tableName: competition
+            schemaName:  jigsaw
+            remarks: table for storing competition data
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: uniquename
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: startdate
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data
+                  type: JSONB
+                  constraints:
+                    nullable: true
+  - changeSet:
+     id: create-competition-name-index
+     author: Gaute Brakstad
+     changes:
+       - createIndex:
+           indexName: idx_competition_name
+           tableName: competition
+           schemaName: jigsaw
+           columns:
+             - column:
+                 name: name
+  - changeSet:
+     id: create-compeititon-uniquename-index
+     author: Gaute Brakstad
+     changes:
+       - createIndex:
+           indexName: idx_competition_uniquename
+           tableName: competition
+           schemaName: jigsaw
+           columns:
+             - column:
+                 name: uniquename 
+  - changeSet:
+     id: create-compeititon-startdate-index
+     author: Gaute Brakstad
+     changes:
+       - createIndex:
+           indexName: idx_competition_startdate
+           tableName: competition
+           schemaName: jigsaw
+           columns:
+             - column:
+                 name: startdate           

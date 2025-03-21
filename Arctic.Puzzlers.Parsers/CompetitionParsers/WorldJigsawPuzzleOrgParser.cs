@@ -1,10 +1,12 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
+using Arctic.Puzzlers.Objects.DTO;
 using Arctic.Puzzlers.Objects.PuzzleObjects;
+using Arctic.Puzzlers.Parsers.CompetitionParsers.Options;
 using Arctic.Puzzlers.Stores;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Globalization;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Arctic.Puzzlers.Parsers.CompetitionParsers
@@ -14,11 +16,14 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
         private readonly ILogger<WorldJigsawPuzzleOrgParser> m_logger;
         private readonly ICompetitionStore m_store;
         private readonly IPlayerStore m_playerStore;
-        public WorldJigsawPuzzleOrgParser(ILogger<WorldJigsawPuzzleOrgParser> logger, ICompetitionStore store, IPlayerStore playerStore)
+        private readonly IOptions<CompetitionParsingOptions> m_options;
+
+        public WorldJigsawPuzzleOrgParser(ILogger<WorldJigsawPuzzleOrgParser> logger, ICompetitionStore store, IPlayerStore playerStore, IOptions<CompetitionParsingOptions> options)
         {
             m_logger = logger;
             m_store = store;
             m_playerStore = playerStore;
+            m_options = options;
         }
         public async Task Parse(string baseurl)
         {
@@ -37,7 +42,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 {
                     try
                     {
-                        var competitionPage = await web.LoadFromWebAsync(competitionUrl);
+                        var competitionPage = await GetCompetitionHtml(competitionUrl, baseurl);
                         if (competitionPage == null)
                         {
                             continue;
@@ -90,6 +95,30 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                         m_logger.LogInformation(ex, $"Could not parse data from {competitionUrl} due to exception");
                     }
             }             
+            }
+        }
+
+        private async Task<HtmlDocument> GetCompetitionHtml(string competitionUrl,string baseurl)
+        {
+            var folderPath = m_options.Value.LocalStoragePath;
+            var fileName = competitionUrl.Replace(baseurl,"").TrimStart('/').Replace('/','-') + ".html";
+            
+            var fullFilePath = Path.Combine(folderPath, fileName);
+            var web = new HtmlWeb();
+            if (File.Exists(fullFilePath))
+            {
+                using (var filestream = File.OpenRead(fullFilePath))
+                {
+                    var competitionPage = new HtmlDocument();
+                    competitionPage.Load(filestream);
+                    return competitionPage;
+                }
+            }
+            else
+            {
+                var competitionPage = await web.LoadFromWebAsync(competitionUrl);
+                File.WriteAllText(fullFilePath, competitionPage.DocumentNode.OuterHtml);
+                return competitionPage;
             }
         }
 
@@ -163,16 +192,16 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 
         private async Task AddPlayer(ParticipantResult participantResult, string name)
         {
-            var players = await m_playerStore.FindPlayerByName(name);
-            Player? player = null;
+            var players = await m_playerStore.GetPlayersByNameAsync(name);
+            PlayerDTO? player = null;
             if (players != null && players.Count() > 0)
             {
                 player = players.First();
             }
             if (player == null)
             {
-                player = new Player { FullName = name};
-                await m_playerStore.Store(player);
+                player = new PlayerDTO { FullName = name};
+                await m_playerStore.CreateOrUpdatePlayerAsync(player.Id, player);
             }
 
             participantResult.Participants.Add(new Participant { FullName = player.FullName, PlayerId = player.Id });
@@ -189,8 +218,7 @@ namespace Arctic.Puzzlers.Parsers.CompetitionParsers
                 var competitionRound = new CompetitionRound();
                 competitionRound.Url = currentUrl;
 
-                var web = new HtmlWeb();
-                var doc = await web.LoadFromWebAsync(currentUrl);
+                var doc = await GetCompetitionHtml(currentUrl, baseUrl);
 
                 competitionRound.Puzzles.Add(new Puzzle { BrandName = BrandName.Unknown, ShortId = 0 });
 

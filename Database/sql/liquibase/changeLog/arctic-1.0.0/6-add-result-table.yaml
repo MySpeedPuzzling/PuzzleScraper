@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-result-table
+      author: Gaute Brakstad
+      changes:
+        - createTable:
+            tableName: result
+            schemaName:  jigsaw
+            remarks: table for storing result data
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: competitionroundid
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data
+                  type: JSONB
+                  constraints:
+                    nullable: true
+ 

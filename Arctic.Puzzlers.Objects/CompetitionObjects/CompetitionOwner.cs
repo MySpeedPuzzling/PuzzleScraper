@@ -10,6 +10,7 @@ namespace Arctic.Puzzlers.Objects.CompetitionObjects
     {
         AePuzz,
         WJPC,
-        SpeedPuzzling
+        SpeedPuzzling,
+        SpeedPuzzleEu
     }
 }

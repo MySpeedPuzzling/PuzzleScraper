@@ -1,14 +1,9 @@
-﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
-using Arctic.Puzzlers.Objects.PuzzleObjects;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Microsoft.Extensions.Configuration;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using System.Text.Unicode;
+using Arctic.Puzzlers.Objects.DTO;
 
 namespace Arctic.Puzzlers.Stores.Filestore
 {
@@ -16,7 +11,7 @@ namespace Arctic.Puzzlers.Stores.Filestore
     {
         private readonly IConfiguration m_configuration;
         private const string JsonFileName = "playerdata.json";
-        private List<Player> m_players;
+        private List<PlayerDTO> m_players;
         private JsonSerializerOptions m_serializeOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -27,7 +22,7 @@ namespace Arctic.Puzzlers.Stores.Filestore
 
         public JsonPlayerStore(IConfiguration config)
         {
-            m_players = new List<Player>();
+            m_players = new List<PlayerDTO>();
             m_configuration = config;
             Init();
         }
@@ -48,19 +43,19 @@ namespace Arctic.Puzzlers.Stores.Filestore
                 }
             }
         }
-        public Task<IEnumerable<Player>> FindPlayerByName(string name)
+        public Task<IEnumerable<PlayerDTO>> GetPlayersByNameAsync(string name)
         {
             var players = m_players.Where(p => p.FullName.Equals(name,StringComparison.InvariantCultureIgnoreCase));
             return Task.FromResult(players);
         }
 
-        public  Task<Player?> GetPlayerByGuid(Guid id)
+        public  Task<PlayerDTO?> GetPlayerByIdAsync(Guid id)
         {
             var player = m_players.FirstOrDefault(p=> p.Id == id);
             return Task.FromResult(player);
         }
 
-        public Task<bool> Store(Player player)
+        public Task<bool> CreateOrUpdatePlayerAsync(Guid id, PlayerDTO player)
         {
             if (!m_players.Any(t => t.FullName == player.FullName))
             {

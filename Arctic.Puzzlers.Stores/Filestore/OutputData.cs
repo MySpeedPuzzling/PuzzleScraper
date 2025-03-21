@@ -1,4 +1,5 @@
 ﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
+using Arctic.Puzzlers.Objects.DTO;
 using Arctic.Puzzlers.Objects.PuzzleObjects;
 
 namespace Arctic.Puzzlers.Stores.Filestore
@@ -8,6 +9,6 @@ namespace Arctic.Puzzlers.Stores.Filestore
         public List<Competition> Competitions { get; set; } = new List<Competition>();
         public List<PuzzleExtended> Puzzles { get; set; } = new List<PuzzleExtended>();
 
-        public List<Player> Players { get; set; } = new List<Player>();
+        public List<PlayerDTO> Players { get; set; } = new List<PlayerDTO>();
     }
 }

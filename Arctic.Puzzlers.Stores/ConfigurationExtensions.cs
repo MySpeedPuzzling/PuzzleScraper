@@ -11,7 +11,7 @@ namespace Arctic.Puzzlers.Stores
         public static string GetFileOutputFolder(this IConfiguration configuration)
         {
             return configuration[FileOutputFolderKey] ?? string.Empty;
-        }
+        }     
 
         public static string GetStoreType(this IConfiguration configuration)
         {
@@ -27,6 +27,11 @@ namespace Arctic.Puzzlers.Stores
                 return false;
             }
             return bool.Parse(overrideData);
+        }
+
+        public static string GetApiUrl(this IConfiguration configuration)
+        {
+            return configuration["APIURL"] ?? "http://webapi:8080/";
         }
     }
 }

@@ -71,12 +71,12 @@ namespace Arctic.Puzzlers.Stores.Filestore
         {
             if (m_configuration.OverrideData())
             {
-                m_competitionList.RemoveAll(t => t.Url == competition.Url);
+                m_competitionList.RemoveAll(t => t.Url == competition.Url && t.Name == competition.Name);
                 m_competitionList.Add(competition);
                 StoreData();
                 return Task.FromResult(true);
             }
-            else if (!m_competitionList.Any(t => t.Url == competition.Url))
+            else if (!m_competitionList.Any(t => t.Url == competition.Url && t.Name == competition.Name))
             {
                 m_competitionList.Add(competition);
                 StoreData();

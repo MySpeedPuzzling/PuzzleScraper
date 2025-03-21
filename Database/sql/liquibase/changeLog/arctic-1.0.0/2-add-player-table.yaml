@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-player-table
+      author: Gaute Brakstad
+      changes:
+        - createTable:
+            tableName: player
+            schemaName:  jigsaw
+            remarks: table storing player information
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: data
+                  type: JSONB
+                  constraints:
+                    nullable: true
+  - changeSet:
+     id: create-player-index
+     author: Gaute Brakstad
+     changes:
+       - createIndex:
+           indexName: idx_player_name
+           tableName: player
+           schemaName: jigsaw
+           columns:
+             - column:
+                 name: name    

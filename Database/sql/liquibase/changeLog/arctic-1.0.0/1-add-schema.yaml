@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-jigsaw2-schema
+      author: Gaute Brakstad
+      changes:
+       -  sql:
+           sql:  CREATE SCHEMA jigsaw

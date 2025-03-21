@@ -1,19 +1,34 @@
-﻿using Arctic.Puzzlers.Objects.CompetitionObjects;
+﻿using Arctic.Puzzlers.Objects.DTO;
 using Tabula;
 
 namespace Arctic.Puzzlers.Parsers.CompetitionParsers
 {
     public static class SpeedPuzzlingExtensions
     {
-        public static void AddTime(this ParticipantResult participant, IReadOnlyList<Cell> row, int timeHeader)
+        public static void AddResult(this ResultDTO participant, IReadOnlyList<Cell> row, int timeHeader, int piecesPerMinuteHeader)
         {
             var timestring = row[timeHeader].GetText();
             if (TimeSpan.TryParse(timestring, out TimeSpan time))
             {
-                participant.Results.Add(new Result { Time = time });
+                var result= new PuzzleResult { PuzzleTime = time };
+
+                var piecesPerMinuteString = row[piecesPerMinuteHeader].GetText();
+                if (double.TryParse(piecesPerMinuteString, out double piecesPerMinute))
+                {
+                    result.ParsedPiecesPerMinute = piecesPerMinute;
+                }
+                participant.Results.Add(result);
+            }           
+        }
+
+        public static void AddRank(this ResultDTO participant, IReadOnlyList<Cell> row, int rankHeader)
+        {
+            var rankstring = row[rankHeader]?.TextElements?.First()?.GetText();
+            if (int.TryParse(rankstring, out int rank))
+            {
+                participant.Rank = rank;
             }
         }
-      
 
         public static string FixName(this string name)
         {

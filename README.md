@@ -1,5 +1,6 @@
 # Arctic.Background
 
+
 ## Configuration Variables
 | Variable name | Possible Values/format | Datatype | Description
 | --- | --- | --- |----------- |
